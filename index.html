@@ -28,6 +28,7 @@
             --bg-body: #f3f4f6;
         }
 
+        /* --- DARK MODE: DEEP BLACK --- */
         body.dark-mode {
             --text-main: #ffffff;
             --bg-body: #000000;
@@ -53,13 +54,13 @@
 
         body.dark-mode .glass-panel {
             background: rgba(18, 18, 18, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         /* Typography */
         #questionText {
             font-weight: 500; 
-            line-height: 1.6;
+            line-height: 1.5;
             color: var(--text-main) !important;
         }
         
@@ -101,10 +102,10 @@
         .modal-content {
             background: white; width: 90%; max-width: 320px;
             padding: 24px; border-radius: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             transform: scale(0.95); transition: transform 0.3s;
         }
-        body.dark-mode .modal-content { background: #1f2937; border: 1px solid #374151; }
+        body.dark-mode .modal-content { background: #111827; border: 1px solid #374151; }
         #customModal.active .modal-content { transform: scale(1); }
 
         /* Restore FAB */
@@ -152,19 +153,43 @@
         }
         #toast.show { opacity: 1; }
 
-        /* Answer Card Styling */
+        /* --- CARDS & LIST ITEMS FIX --- */
+        /* Class chung cho các thẻ danh sách (Sách, Đề thi) */
+        .list-item-card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+        body.dark-mode .list-item-card {
+            background-color: #111827 !important; /* Xám đen */
+            border-color: #374151 !important;
+            color: #ffffff !important;
+        }
+        body.dark-mode .list-item-card:active {
+            background-color: #1f2937 !important; /* Highlight khi chạm */
+        }
+        body.dark-mode .list-item-card h3, 
+        body.dark-mode .list-item-card h4 {
+            color: #ffffff !important;
+        }
+        body.dark-mode .list-item-card p {
+            color: #9ca3af !important; /* Gray-400 */
+        }
+
+        /* --- ANSWER CARD FIX --- */
         .answer-card {
             background-color: #ffffff; color: #1f2937;
             border: 1px solid #e5e7eb; position: relative;
             touch-action: manipulation; 
         }
         body.dark-mode .answer-card { 
-            background-color: #111827;
-            color: #e5e7eb; 
-            border-color: #374151;
+            background-color: #111827; 
+            color: #ffffff; 
+            border-color: #374151; 
         }
         body.dark-mode .answer-card:hover {
-            background-color: #1f2937; border-color: #4b5563;
+            background-color: #1f2937;
+            border-color: #4b5563;
         }
 
         .answer-correct { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
@@ -173,13 +198,17 @@
         .answer-wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
         body.dark-mode .answer-wrong { background-color: #7f1d1d !important; color: #fee2e2 !important; border-color: #dc2626 !important; }
 
+        /* --- SỐ THỨ TỰ 1,2,3,4 FIX --- */
         .key-badge {
-            background: #f3f4f6; color: #374151;
+            background: #f3f4f6; 
+            color: #374151;
             padding: 2px 8px; border-radius: 6px; font-size: 0.85em; margin-right: 12px; font-weight: 800; min-width: 28px; text-align: center;
             border: 1px solid #e5e7eb;
         }
         body.dark-mode .key-badge { 
-            background: #374151; color: #ffffff; border-color: #4b5563;
+            background: #374151 !important; /* Nền xám vừa */
+            color: #fbbf24 !important;      /* Chữ vàng cho nổi */
+            border-color: #4b5563 !important;
         }
 
         /* Buttons */
@@ -189,7 +218,7 @@
         }
         .btn-gold:active { transform: scale(0.98); }
 
-        /* Inputs */
+        /* Login Inputs */
         .auth-input {
             width: 100%; padding: 12px 16px; margin-bottom: 12px;
             border-radius: 12px; border: 1px solid #e5e7eb;
@@ -874,7 +903,8 @@
                     document.getElementById('emptyLibraryMsg').classList.add('hidden');
                     this.library.forEach(folder => {
                         const div = document.createElement('div');
-                        div.className = "bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex justify-between items-center active:bg-gray-50 dark:active:bg-gray-800 transition";
+                        // ADDED CLASS list-item-card for dark mode support
+                        div.className = "list-item-card p-4 rounded-xl border shadow-sm flex justify-between items-center active:bg-gray-50 transition cursor-pointer";
                         div.onclick = () => this.openFolder(folder.id);
                         div.innerHTML = `
                             <div class="flex items-center overflow-hidden">
@@ -882,7 +912,7 @@
                                     <i class="fas fa-book text-xl"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <h3 class="font-bold text-gray-800 dark:text-gray-200 truncate pr-2">${folder.name}</h3>
+                                    <h3 class="font-bold text-gray-800 truncate pr-2">${folder.name}</h3>
                                     <p class="text-xs text-gray-500">${folder.quizzes.length} đề thi</p>
                                 </div>
                             </div>
@@ -910,8 +940,10 @@
                         let statusHtml = '';
                         if (isDone) statusHtml = '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md font-bold">Đã xong</span>';
                         else if (hasProgress) statusHtml = '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold">Làm dở</span>';
+                        
                         const div = document.createElement('div');
-                        div.className = "bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center active:scale-[0.99] transition";
+                        // ADDED CLASS list-item-card for dark mode support
+                        div.className = "list-item-card p-4 rounded-xl border shadow-sm flex justify-between items-center active:scale-[0.99] transition cursor-pointer";
                         div.onclick = () => this.startQuiz(quiz.id);
                         div.innerHTML = `
                             <div class="flex items-center min-w-0 flex-1 mr-2">
@@ -919,7 +951,7 @@
                                     <i class="fas fa-file-alt"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <h4 class="font-bold text-sm text-gray-800 dark:text-gray-200 truncate">${quiz.name}</h4>
+                                    <h4 class="font-bold text-sm text-gray-800 truncate">${quiz.name}</h4>
                                     <div class="flex items-center gap-2 mt-1">
                                         <p class="text-xs text-gray-500">${quiz.questions.length} câu</p>
                                         ${statusHtml}
@@ -1081,7 +1113,7 @@
                 answers.forEach((ans, idx) => {
                     const btn = document.createElement('button');
                     btn.className = 'answer-card w-full text-left p-4 rounded-xl font-medium shadow-sm flex items-center min-h-[60px] active:scale-[0.98] transition';
-                    btn.innerHTML = `<span class="w-6 h-6 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold mr-3 flex-shrink-0">${idx + 1}</span> <span>${ans.text}</span>`;
+                    btn.innerHTML = `<span class="key-badge">${idx + 1}</span> <span>${ans.text}</span>`;
                     btn.onclick = () => this.handleAnswer(btn, ans, qIdx);
                     this.ui.ansContainer.appendChild(btn);
                 });
