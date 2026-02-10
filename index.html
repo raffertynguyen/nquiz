@@ -170,6 +170,25 @@
             background-color: #374151; border-color: #4b5563; color: white;
         }
 
+        /* User Dropdown */
+        .user-dropdown {
+            position: absolute; right: 0; top: 120%;
+            background: white; border-radius: 12px;
+            width: 200px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f3f4f6;
+            z-index: 50;
+            transform-origin: top right;
+            transition: all 0.2s ease-out;
+            opacity: 0; pointer-events: none; transform: scale(0.95);
+        }
+        .user-dropdown.active {
+            opacity: 1; pointer-events: auto; transform: scale(1);
+        }
+        body.dark-mode .user-dropdown {
+            background: #1f2937; border-color: #374151;
+        }
+
         .hidden-el { display: none !important; }
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -191,14 +210,13 @@
         <i class="fas fa-lightbulb"></i>
     </a>
 
-    <!-- LOGIN SCREEN (Cập nhật Email/Password) -->
+    <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="fixed inset-0 z-[9999] bg-white dark:bg-black flex flex-col items-center justify-center p-6 transition-all duration-500">
         <div class="text-center max-w-sm w-full">
             <i class="fas fa-cloud text-6xl text-yellow-500 mb-6 animate-bounce"></i>
             <h1 class="text-3xl font-bold mb-2 text-gray-900 dark:text-white">nQUIZ <span class="text-yellow-500">Cloud</span></h1>
             <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">Đồng bộ dữ liệu an toàn & bảo mật</p>
             
-            <!-- Email Form -->
             <div class="w-full text-left">
                 <input type="email" id="emailInput" placeholder="Email" class="auth-input">
                 <input type="password" id="passwordInput" placeholder="Mật khẩu" class="auth-input">
@@ -215,13 +233,11 @@
                 </p>
             </div>
 
-            <!-- Divider -->
             <div class="relative w-full mb-6">
                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200 dark:border-gray-800"></div></div>
                 <div class="relative flex justify-center text-xs uppercase"><span class="px-2 bg-white dark:bg-black text-gray-400">Hoặc</span></div>
             </div>
             
-            <!-- Google Button -->
             <button onclick="app.loginGoogle()" class="w-full py-3 px-4 rounded-xl bg-white border border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
                 Tiếp tục với Google
@@ -244,7 +260,7 @@
 
     <main class="w-full max-w-4xl glass-panel min-h-[85vh] flex flex-col p-5 relative overflow-hidden">
         
-        <!-- HEADER -->
+        <!-- HEADER (Updated Layout) -->
         <header class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
             <div class="flex items-center">
                 <h1 class="text-xl md:text-2xl font-bold text-yellow-600 dark:text-yellow-500 flex items-center cursor-pointer select-none" onclick="app.goHome()">
@@ -253,21 +269,32 @@
                 </h1>
             </div>
             
-            <div class="flex items-center gap-2">
-                <span id="userName" class="text-xs font-bold text-gray-500 hidden md:block max-w-[100px] truncate">User</span>
-                <!-- Avatar thật (nếu có) -->
-                <img id="userAvatar" src="" class="w-8 h-8 rounded-full border border-gray-300 hidden object-cover">
-                <!-- Avatar mặc định (icon) -->
-                <div id="defaultAvatar" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 hidden">
-                    <i class="fas fa-user"></i>
+            <div class="flex items-center gap-3">
+                <!-- User Profile Trigger (Click to Toggle Dropdown) -->
+                <div class="relative">
+                    <div id="userProfileTrigger" class="flex items-center gap-2 cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition select-none">
+                        <span id="userName" class="text-xs font-bold text-gray-500 hidden md:block max-w-[100px] truncate">User</span>
+                        <img id="userAvatar" src="" class="w-10 h-10 rounded-full border border-gray-300 hidden object-cover shadow-sm">
+                        <div id="defaultAvatar" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 hidden shadow-sm">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div id="userDropdown" class="user-dropdown">
+                        <div class="p-3 border-b border-gray-100 dark:border-gray-700">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Đăng nhập bởi</p>
+                            <p id="dropdownEmail" class="text-sm font-bold text-gray-800 dark:text-white truncate">...</p>
+                        </div>
+                        <button onclick="app.logout()" class="w-full text-left px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm font-medium flex items-center rounded-b-xl">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Back Button -->
-                <button id="homeBtn" class="hidden-el w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition" onclick="app.goBack()">
-                    <i class="fas fa-arrow-left text-lg"></i>
-                </button>
-                <button onclick="app.logout()" class="text-xs text-red-500 hover:text-red-700 ml-1" title="Đăng xuất">
-                    <i class="fas fa-sign-out-alt text-lg"></i>
+                <!-- Back Button (To & Nằm bên phải) -->
+                <button id="homeBtn" class="hidden-el w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition shadow-sm ml-1" onclick="app.goBack()">
+                    <i class="fas fa-arrow-left text-xl"></i>
                 </button>
             </div>
         </header>
@@ -303,7 +330,7 @@
                     <!-- Book Name -->
                 </h2>
                 <div class="w-full md:w-auto">
-                    <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden">
+                    <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden" multiple>
                     <label for="excelInput" class="btn-gold w-full md:w-auto px-4 py-3 rounded-xl shadow-lg cursor-pointer text-sm font-bold flex items-center justify-center active:scale-95 transition">
                         <i class="fas fa-file-import mr-2"></i> THÊM ĐỀ
                     </label>
@@ -415,14 +442,14 @@
             auth = firebase.auth();
             provider = new firebase.auth.GoogleAuthProvider();
         } catch (error) {
-            console.error("Firebase chưa được cấu hình đúng: ", error);
+            console.error("Firebase Init Error: ", error);
         }
 
         const app = {
             library: [],
             currentFolderId: null,
             currentQuizId: null,
-            isRegisterMode: false, // Trạng thái Đăng nhập/Đăng ký
+            isRegisterMode: false,
 
             runtime: {
                 questions: [], playQueue: [], wrongIndices: [], 
@@ -452,8 +479,6 @@
                 fileNameDisplay: document.getElementById('fileNameDisplay'),
                 modal: document.getElementById('customModal'),
                 modalInput: document.getElementById('modalInput'),
-                
-                // Login UI
                 loginScreen: document.getElementById('loginScreen'),
                 loadingIndicator: document.getElementById('loadingIndicator'),
                 emailInput: document.getElementById('emailInput'),
@@ -463,14 +488,12 @@
             },
 
             init() {
-                // Theme Logic
                 const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 if(isDark) document.body.classList.add('dark-mode');
                 document.getElementById('themeToggle').addEventListener('click', () => {
                     document.body.classList.toggle('dark-mode');
                 });
 
-                // Events
                 this.ui.input.addEventListener('change', (e) => this.handleFile(e));
                 this.ui.nextBtn.addEventListener('click', () => this.nextQuestion());
                 this.ui.restoreBtn.addEventListener('click', () => this.restoreCurrentProgress());
@@ -489,7 +512,6 @@
                     document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
                 });
 
-                // Keydown
                 document.addEventListener('keydown', (e) => {
                     if (this.ui.screens.quiz.classList.contains('hidden-el')) return;
                     if (['1','2','3','4'].includes(e.key)) {
@@ -502,15 +524,28 @@
                     }
                 });
 
-                // --- AUTH LISTENER ---
+                // Dropdown Toggle
+                const profileTrigger = document.getElementById('userProfileTrigger');
+                const dropdown = document.getElementById('userDropdown');
+                
+                profileTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('active');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!profileTrigger.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+
                 auth.onAuthStateChanged((user) => {
                     if (user) {
                         currentUser = user;
                         this.ui.loginScreen.classList.add('hidden-el');
-                        
-                        // Xử lý hiển thị thông tin User
                         const displayName = user.displayName || user.email.split('@')[0];
                         document.getElementById('userName').innerText = displayName;
+                        document.getElementById('dropdownEmail').innerText = user.email; // Show email in dropdown
                         
                         if (user.photoURL) {
                             document.getElementById('userAvatar').src = user.photoURL;
@@ -520,7 +555,6 @@
                             document.getElementById('userAvatar').classList.add('hidden');
                             document.getElementById('defaultAvatar').classList.remove('hidden');
                         }
-
                         this.loadLibraryFromCloud();
                     } else {
                         this.ui.loginScreen.classList.remove('hidden-el');
@@ -528,13 +562,11 @@
                 });
             },
 
-            // --- AUTHENTICATION ---
-            
+            // --- AUTH ---
             toggleAuthMode() {
                 this.isRegisterMode = !this.isRegisterMode;
                 const text = document.getElementById('authSwitchText');
                 const btn = document.getElementById('authSwitchBtn');
-                
                 if (this.isRegisterMode) {
                     this.ui.emailAuthBtn.innerText = "Đăng ký";
                     text.innerText = "Đã có tài khoản?";
@@ -550,20 +582,15 @@
             handleEmailAuth() {
                 const email = this.ui.emailInput.value;
                 const password = this.ui.passwordInput.value;
-                
                 if (!email || !password) {
                     this.showLoginError("Vui lòng nhập đầy đủ Email và Mật khẩu.");
                     return;
                 }
-
                 if (this.isRegisterMode) {
                     auth.createUserWithEmailAndPassword(email, password)
                         .then((userCredential) => {
-                            // Cập nhật tên hiển thị mặc định (lấy prefix email)
                             const defaultName = email.split('@')[0];
-                            userCredential.user.updateProfile({
-                                displayName: defaultName
-                            });
+                            userCredential.user.updateProfile({ displayName: defaultName });
                         })
                         .catch((error) => this.handleAuthError(error));
                 } else {
@@ -572,19 +599,15 @@
                 }
             },
 
-            loginGoogle() {
-                auth.signInWithPopup(provider).catch((error) => this.handleAuthError(error));
-            },
+            loginGoogle() { auth.signInWithPopup(provider).catch((error) => this.handleAuthError(error)); },
 
             handleAuthError(error) {
                 let msg = error.message;
-                // Việt hóa một số lỗi phổ biến
                 if (error.code === 'auth/wrong-password') msg = "Sai mật khẩu.";
                 else if (error.code === 'auth/user-not-found') msg = "Tài khoản không tồn tại.";
                 else if (error.code === 'auth/email-already-in-use') msg = "Email này đã được đăng ký.";
                 else if (error.code === 'auth/weak-password') msg = "Mật khẩu quá yếu (cần ít nhất 6 ký tự).";
                 else if (error.code === 'auth/invalid-email') msg = "Email không hợp lệ.";
-                
                 this.showLoginError(msg);
             },
 
@@ -593,25 +616,18 @@
                 this.ui.loginError.classList.remove('hidden');
             },
 
-            logout() {
-                auth.signOut().then(() => {
-                    location.reload(); 
-                });
-            },
+            logout() { auth.signOut().then(() => { location.reload(); }); },
 
             // --- CLOUD DATA ---
             async loadLibraryFromCloud() {
                 this.ui.loadingIndicator.classList.remove('hidden');
-                
                 try {
                     const docRef = db.collection('users').doc(currentUser.uid);
                     const doc = await docRef.get();
-                    
                     if (doc.exists) {
                         const data = doc.data();
                         this.library = data.library || [];
                     } else {
-                        // First time user, create empty library
                         this.library = [];
                         await docRef.set({ library: [] });
                     }
@@ -627,25 +643,81 @@
 
             async saveLibrary() {
                 if (!currentUser) return;
-                
                 try {
-                    await db.collection('users').doc(currentUser.uid).set({
-                        library: this.library
-                    });
+                    await db.collection('users').doc(currentUser.uid).set({ library: this.library });
                 } catch (error) {
                     console.error("Error writing document: ", error);
                 }
             },
 
-            // --- NAVIGATION ---
+            // --- MULTI-FILE IMPORT ---
+            handleFile(e) {
+                const files = e.target.files;
+                if (!files || files.length === 0) return;
+
+                this.ui.loadingIndicator.classList.remove('hidden');
+                this.ui.loadingIndicator.querySelector('p').innerText = `Đang xử lý ${files.length} file...`;
+
+                const promises = Array.from(files).map(file => {
+                    return new Promise((resolve) => {
+                        const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                        const reader = new FileReader();
+                        reader.onload = (evt) => {
+                            const data = new Uint8Array(evt.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                            resolve({ name: rawName, rows: json });
+                        };
+                        reader.readAsArrayBuffer(file);
+                    });
+                });
+
+                Promise.all(promises).then(results => {
+                    const folder = this.library.find(f => f.id === this.currentFolderId);
+                    let count = 0;
+                    
+                    results.forEach(res => {
+                        const questions = [];
+                        res.rows.forEach(r => {
+                            if (r[0] && r[1]) {
+                                questions.push({
+                                    q: String(r[0]),
+                                    correct: String(r[1]),
+                                    wrong: [r[2], r[3], r[4]].filter(x => x != null && x !== "").map(String)
+                                });
+                            }
+                        });
+
+                        if (questions.length > 0) {
+                            folder.quizzes.push({
+                                id: Date.now() + Math.random(), 
+                                name: res.name,
+                                questions: questions,
+                                progress: null
+                            });
+                            count++;
+                        }
+                    });
+
+                    this.saveLibrary(); 
+                    this.renderFolder();
+                    
+                    this.ui.input.value = '';
+                    this.ui.loadingIndicator.classList.add('hidden');
+                    this.ui.loadingIndicator.querySelector('p').innerText = "Đang tải dữ liệu..."; 
+                    
+                    if(count > 0) alert(`Đã thêm thành công ${count} đề thi!`);
+                    else alert("Không tìm thấy dữ liệu hợp lệ trong các file đã chọn.");
+                });
+            },
+
+            // --- APP LOGIC ---
             switchScreen(screenName) {
                 Object.values(this.ui.screens).forEach(el => el.classList.add('hidden-el'));
                 this.ui.screens[screenName].classList.remove('hidden-el');
-                if (screenName === 'library') {
-                    this.ui.homeBtn.classList.add('hidden-el');
-                } else {
-                    this.ui.homeBtn.classList.remove('hidden-el');
-                }
+                if (screenName === 'library') this.ui.homeBtn.classList.add('hidden-el');
+                else this.ui.homeBtn.classList.remove('hidden-el');
                 this.checkRestoreVisibility(screenName);
             },
 
@@ -669,7 +741,6 @@
                 }
             },
 
-            // --- MODAL ---
             openCreateModal() {
                 this.ui.modal.classList.add('active');
                 this.ui.modalInput.value = '';
@@ -681,23 +752,18 @@
             confirmCreateFolder() {
                 const name = this.ui.modalInput.value.trim();
                 if (name) {
-                    this.library.push({
-                        id: Date.now(),
-                        name: name,
-                        quizzes: []
-                    });
-                    this.saveLibrary(); // Sync to Cloud
+                    this.library.push({ id: Date.now(), name: name, quizzes: [] });
+                    this.saveLibrary();
                     this.renderLibrary();
                 }
                 this.closeModal();
             },
 
-            // --- LIBRARY ---
             deleteFolder(id, e) {
                 e.stopPropagation();
                 if(confirm("Xóa toàn bộ sách này?")) {
                     this.library = this.library.filter(f => f.id !== id);
-                    this.saveLibrary(); // Sync to Cloud
+                    this.saveLibrary();
                     this.renderLibrary();
                 }
             },
@@ -737,14 +803,11 @@
                 }
             },
 
-            // --- FOLDER ---
             renderFolder() {
                 const folder = this.library.find(f => f.id === this.currentFolderId);
                 if (!folder) return this.goHome();
-
                 document.getElementById('currentFolderName').innerText = folder.name;
                 this.ui.quizzesContainer.innerHTML = '';
-                
                 if (folder.quizzes.length === 0) {
                     document.getElementById('emptyFolderMsg').classList.remove('hidden');
                 } else {
@@ -752,11 +815,9 @@
                     folder.quizzes.forEach(quiz => {
                         const hasProgress = quiz.progress && quiz.progress.currentIndex > 0;
                         const isDone = quiz.progress && quiz.progress.currentIndex >= quiz.progress.playQueue.length;
-                        
                         let statusHtml = '';
                         if (isDone) statusHtml = '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md font-bold">Đã xong</span>';
                         else if (hasProgress) statusHtml = '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold">Làm dở</span>';
-
                         const div = document.createElement('div');
                         div.className = "bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center active:scale-[0.99] transition";
                         div.onclick = () => this.startQuiz(quiz.id);
@@ -787,48 +848,9 @@
                 if(confirm("Xóa đề thi này?")) {
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     folder.quizzes = folder.quizzes.filter(q => q.id !== quizId);
-                    this.saveLibrary(); // Sync to Cloud
+                    this.saveLibrary();
                     this.renderFolder();
                 }
-            },
-
-            handleFile(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    this.importQuizData(rawName, json);
-                };
-                reader.readAsArrayBuffer(file);
-                this.ui.input.value = '';
-            },
-
-            importQuizData(name, rows) {
-                const questions = [];
-                rows.forEach(r => {
-                    if (r[0] && r[1]) {
-                        questions.push({
-                            q: String(r[0]),
-                            correct: String(r[1]),
-                            wrong: [r[2], r[3], r[4]].filter(x => x != null && x !== "").map(String)
-                        });
-                    }
-                });
-                if (questions.length === 0) return alert("File lỗi!");
-                const folder = this.library.find(f => f.id === this.currentFolderId);
-                folder.quizzes.push({
-                    id: Date.now(),
-                    name: name,
-                    questions: questions,
-                    progress: null
-                });
-                this.saveLibrary(); // Sync to Cloud
-                this.renderFolder();
             },
 
             // --- QUIZ ---
@@ -836,10 +858,8 @@
                 this.currentQuizId = quizId;
                 const folder = this.library.find(f => f.id === this.currentFolderId);
                 const quiz = folder.quizzes.find(q => q.id === quizId);
-
                 this.ui.fileNameDisplay.innerText = `FILE: ${quiz.name}`;
                 this.ui.fileNameDisplay.classList.remove('hidden-el');
-
                 if (quiz.progress) {
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
                     if (this.runtime.currentIndex >= this.runtime.playQueue.length && 
@@ -870,7 +890,7 @@
                     const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
                     if(quiz) {
                         quiz.progress = JSON.parse(JSON.stringify(this.runtime));
-                        this.saveLibrary(); // Sync to Cloud
+                        this.saveLibrary();
                     }
                 }
             },
@@ -915,26 +935,20 @@
             renderQuestion() {
                 if(this.runtime.isReviewMode) this.ui.statusBadge.classList.remove('hidden');
                 else this.ui.statusBadge.classList.add('hidden');
-
                 const qIdx = this.runtime.playQueue[this.runtime.currentIndex];
                 const qData = this.runtime.questions[qIdx];
-
                 this.ui.qText.innerHTML = this.formatQuestionText(qData.q);
-                
                 const currentNum = this.runtime.currentIndex + 1;
                 const totalNum = this.runtime.playQueue.length;
                 this.ui.counter.innerText = `Câu ${currentNum}/${totalNum}`;
                 this.ui.progress.style.width = `${(currentNum / totalNum) * 100}%`;
-                
                 this.ui.actionArea.classList.add('opacity-0');
                 this.ui.actionArea.style.pointerEvents = 'none';
-
                 let answers = [
                     { text: qData.correct, correct: true },
                     ...qData.wrong.map(w => ({ text: w, correct: false }))
                 ];
                 answers.sort(() => Math.random() - 0.5);
-
                 this.ui.ansContainer.innerHTML = '';
                 answers.forEach((ans, idx) => {
                     const btn = document.createElement('button');
@@ -948,7 +962,6 @@
             handleAnswer(btn, ansData, qIdx) {
                 const allBtns = this.ui.ansContainer.querySelectorAll('button');
                 allBtns.forEach(b => b.disabled = true);
-
                 if (ansData.correct) {
                     btn.classList.add('answer-correct');
                     if (!this.runtime.isReviewMode) this.runtime.score++;
@@ -962,7 +975,6 @@
                             b.classList.add('answer-correct');
                         }
                     });
-
                     if (!this.runtime.wrongIndices.includes(qIdx)) {
                         this.runtime.wrongIndices.push(qIdx);
                     }
@@ -975,7 +987,6 @@
             nextQuestion() {
                 this.runtime.currentIndex++;
                 this.saveQuizProgress();
-
                 if (this.runtime.currentIndex < this.runtime.playQueue.length) {
                     this.renderQuestion();
                 } else {
@@ -1021,10 +1032,8 @@
             playGoogleAudio(text, element) {
                 const player = this.ui.globalAudio;
                 document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
-                
                 const lowerText = text.trim().toLowerCase();
                 const encodedText = encodeURIComponent(lowerText);
-                
                 const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodedText}`;
                 player.src = url;
                 if(element) element.classList.add('playing');
