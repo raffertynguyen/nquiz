@@ -154,7 +154,6 @@
         #toast.show { opacity: 1; }
 
         /* --- CARDS & LIST ITEMS FIX --- */
-        /* Class chung cho các thẻ danh sách (Sách, Đề thi) */
         .list-item-card {
             background-color: #ffffff;
             border: 1px solid #e5e7eb;
@@ -166,14 +165,14 @@
             color: #ffffff !important;
         }
         body.dark-mode .list-item-card:active {
-            background-color: #1f2937 !important; /* Highlight khi chạm */
+            background-color: #1f2937 !important;
         }
         body.dark-mode .list-item-card h3, 
         body.dark-mode .list-item-card h4 {
             color: #ffffff !important;
         }
         body.dark-mode .list-item-card p {
-            color: #9ca3af !important; /* Gray-400 */
+            color: #9ca3af !important;
         }
 
         /* --- ANSWER CARD FIX --- */
@@ -206,8 +205,8 @@
             border: 1px solid #e5e7eb;
         }
         body.dark-mode .key-badge { 
-            background: #374151 !important; /* Nền xám vừa */
-            color: #fbbf24 !important;      /* Chữ vàng cho nổi */
+            background: #374151 !important;
+            color: #fbbf24 !important;
             border-color: #4b5563 !important;
         }
 
@@ -993,11 +992,12 @@
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
                     this.updateShuffleUI(); // Cập nhật lại nếu có lưu trạng thái
                     
-                    // Logic mới: Nếu đã xong thì hiện Result luôn
+                    // Logic fix: Check if finished regardless of review mode status
+                    // As long as queue is done and no new wrong answers pending
                     if (this.runtime.currentIndex >= this.runtime.playQueue.length && 
-                        this.runtime.wrongIndices.length === 0 && !this.runtime.isReviewMode) {
+                        this.runtime.wrongIndices.length === 0) {
                          this.showResult();
-                         return; // Dừng lại, không render quiz
+                         return; 
                     } 
                     
                     // Nếu chưa xong, render bình thường
