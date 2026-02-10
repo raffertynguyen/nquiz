@@ -6,6 +6,9 @@
     <meta name="referrer" content="no-referrer">
     <title>nQUIZ - Cloud Sync</title>
     
+    <!-- FAVICON (Icon trên tab trình duyệt) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -744,6 +747,7 @@
                 Promise.all(promises).then(results => {
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     let count = 0;
+                    
                     results.forEach(res => {
                         const questions = [];
                         res.rows.forEach(r => {
@@ -755,6 +759,7 @@
                                 });
                             }
                         });
+
                         if (questions.length > 0) {
                             folder.quizzes.push({
                                 id: Date.now() + Math.random(), 
@@ -765,11 +770,14 @@
                             count++;
                         }
                     });
+
                     this.saveLibrary(); 
                     this.renderFolder();
+                    
                     this.ui.input.value = '';
                     this.ui.loadingIndicator.classList.add('hidden');
                     this.ui.loadingIndicator.querySelector('p').innerText = "Đang tải dữ liệu..."; 
+                    
                     if(count > 0) alert(`Đã thêm thành công ${count} đề thi!`);
                     else alert("Không tìm thấy dữ liệu hợp lệ trong các file đã chọn.");
                 });
@@ -781,7 +789,6 @@
                 this.ui.screens[screenName].classList.remove('hidden-el');
                 if (screenName === 'library') this.ui.homeBtn.classList.add('hidden-el');
                 else this.ui.homeBtn.classList.remove('hidden-el');
-                
                 this.checkRestoreVisibility(screenName);
             },
 
@@ -963,6 +970,7 @@
                         if(q.progress) { found = true; break; }
                     }
                 }
+                this.hasSavedProgress = found;
             },
 
             checkRestoreVisibility(screen) {
