@@ -36,6 +36,7 @@
             color: var(--text-main);
             transition: background-color 0.3s ease, color 0.3s ease;
             min-height: 100vh;
+            /* Quan trọng: Chặn kéo xuống reload trên mobile */
             overscroll-behavior-y: contain; 
         }
 
@@ -138,6 +139,16 @@
         }
         .help-fab:active { transform: scale(0.95); }
 
+        /* TOAST NOTIFICATION (Cho tính năng Exit) */
+        #toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white;
+            padding: 10px 20px; border-radius: 20px;
+            font-size: 14px; z-index: 9999;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        #toast.show { opacity: 1; }
+
         /* Cards */
         .answer-card {
             background-color: #ffffff; color: #1f2937;
@@ -210,6 +221,9 @@
         <i class="fas fa-lightbulb"></i>
     </a>
 
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast">🔙 Bấm lần nữa để thoát</div>
+
     <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="fixed inset-0 z-[9999] bg-white dark:bg-black flex flex-col items-center justify-center p-6 transition-all duration-500">
         <div class="text-center max-w-sm w-full">
@@ -260,7 +274,7 @@
 
     <main class="w-full max-w-4xl glass-panel min-h-[85vh] flex flex-col p-5 relative overflow-hidden">
         
-        <!-- HEADER (Updated Layout) -->
+        <!-- HEADER -->
         <header class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
             <div class="flex items-center">
                 <h1 class="text-xl md:text-2xl font-bold text-yellow-600 dark:text-yellow-500 flex items-center cursor-pointer select-none" onclick="app.goHome()">
@@ -270,7 +284,7 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <!-- User Profile Trigger (Click to Toggle Dropdown) -->
+                <!-- User Profile Trigger -->
                 <div class="relative">
                     <div id="userProfileTrigger" class="flex items-center gap-2 cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition select-none">
                         <span id="userName" class="text-xs font-bold text-gray-500 hidden md:block max-w-[100px] truncate">User</span>
@@ -292,7 +306,7 @@
                     </div>
                 </div>
 
-                <!-- Back Button (To & Nằm bên phải) -->
+                <!-- Back Button -->
                 <button id="homeBtn" class="hidden-el w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition shadow-sm ml-1" onclick="app.goBack()">
                     <i class="fas fa-arrow-left text-xl"></i>
                 </button>
@@ -450,6 +464,7 @@
             currentFolderId: null,
             currentQuizId: null,
             isRegisterMode: false,
+            exitAttempt: false, // Biến đếm số lần thoát
 
             runtime: {
                 questions: [], playQueue: [], wrongIndices: [], 
@@ -484,7 +499,8 @@
                 emailInput: document.getElementById('emailInput'),
                 passwordInput: document.getElementById('passwordInput'),
                 emailAuthBtn: document.getElementById('emailAuthBtn'),
-                loginError: document.getElementById('loginError')
+                loginError: document.getElementById('loginError'),
+                toast: document.getElementById('toast')
             },
 
             init() {
@@ -527,25 +543,24 @@
                 // Dropdown Toggle
                 const profileTrigger = document.getElementById('userProfileTrigger');
                 const dropdown = document.getElementById('userDropdown');
-                
                 profileTrigger.addEventListener('click', (e) => {
                     e.stopPropagation();
                     dropdown.classList.toggle('active');
                 });
-
                 document.addEventListener('click', (e) => {
                     if (!profileTrigger.contains(e.target) && !dropdown.contains(e.target)) {
                         dropdown.classList.remove('active');
                     }
                 });
 
+                // Auth
                 auth.onAuthStateChanged((user) => {
                     if (user) {
                         currentUser = user;
                         this.ui.loginScreen.classList.add('hidden-el');
                         const displayName = user.displayName || user.email.split('@')[0];
                         document.getElementById('userName').innerText = displayName;
-                        document.getElementById('dropdownEmail').innerText = user.email; // Show email in dropdown
+                        document.getElementById('dropdownEmail').innerText = user.email;
                         
                         if (user.photoURL) {
                             document.getElementById('userAvatar').src = user.photoURL;
@@ -556,10 +571,63 @@
                             document.getElementById('defaultAvatar').classList.remove('hidden');
                         }
                         this.loadLibraryFromCloud();
+                        
+                        // SETUP HISTORY NAVIGATION
+                        this.setupHistory();
                     } else {
                         this.ui.loginScreen.classList.remove('hidden-el');
                     }
                 });
+            },
+
+            // --- HISTORY NAVIGATION ---
+            setupHistory() {
+                // Đẩy 1 state ảo vào history để chặn thoát ngay
+                history.replaceState({ screen: 'library' }, '', '');
+                history.pushState({ screen: 'library' }, '', '');
+
+                window.onpopstate = (event) => {
+                    const state = event.state;
+
+                    // Trường hợp 1: Người dùng vuốt Back ở màn hình chính (Library)
+                    // State lúc này sẽ là null (hoặc về trang trước khi vào web)
+                    if (!state) {
+                        if (this.exitAttempt) {
+                            // Cho phép thoát (không làm gì cả, trình duyệt tự back)
+                            history.back();
+                        } else {
+                            // Chặn thoát, hiện Toast
+                            this.showToast();
+                            history.pushState({ screen: 'library' }, '', ''); // Đẩy lại state để giữ ở app
+                            this.exitAttempt = true;
+                            // Reset sau 2 giây
+                            setTimeout(() => { this.exitAttempt = false; }, 2000);
+                        }
+                        return;
+                    }
+
+                    // Trường hợp 2: Điều hướng nội bộ (Folder, Quiz)
+                    if (state.screen === 'folder') {
+                        this.currentFolderId = state.folderId;
+                        this.renderFolder();
+                        this.switchScreen('folder', false); // false = không push state mới
+                    } else if (state.screen === 'quiz') {
+                        // Tùy chọn: có thể cho phép back về quiz nếu muốn
+                        // Nhưng thường UX tốt là back về folder
+                        this.currentQuizId = state.quizId;
+                        // Logic restore quiz (nếu cần) hoặc back về folder
+                        this.openFolder(this.currentFolderId, false);
+                    } else if (state.screen === 'library') {
+                        this.goHome(false);
+                    }
+                };
+            },
+
+            showToast() {
+                this.ui.toast.classList.add('show');
+                setTimeout(() => {
+                    this.ui.toast.classList.remove('show');
+                }, 2000);
             },
 
             // --- AUTH ---
@@ -676,7 +744,6 @@
                 Promise.all(promises).then(results => {
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     let count = 0;
-                    
                     results.forEach(res => {
                         const questions = [];
                         res.rows.forEach(r => {
@@ -688,7 +755,6 @@
                                 });
                             }
                         });
-
                         if (questions.length > 0) {
                             folder.quizzes.push({
                                 id: Date.now() + Math.random(), 
@@ -699,46 +765,37 @@
                             count++;
                         }
                     });
-
                     this.saveLibrary(); 
                     this.renderFolder();
-                    
                     this.ui.input.value = '';
                     this.ui.loadingIndicator.classList.add('hidden');
                     this.ui.loadingIndicator.querySelector('p').innerText = "Đang tải dữ liệu..."; 
-                    
                     if(count > 0) alert(`Đã thêm thành công ${count} đề thi!`);
                     else alert("Không tìm thấy dữ liệu hợp lệ trong các file đã chọn.");
                 });
             },
 
             // --- APP LOGIC ---
-            switchScreen(screenName) {
+            switchScreen(screenName, pushHistory = true) {
                 Object.values(this.ui.screens).forEach(el => el.classList.add('hidden-el'));
                 this.ui.screens[screenName].classList.remove('hidden-el');
                 if (screenName === 'library') this.ui.homeBtn.classList.add('hidden-el');
                 else this.ui.homeBtn.classList.remove('hidden-el');
+                
                 this.checkRestoreVisibility(screenName);
             },
 
-            goHome() {
+            goHome(pushHistory = true) {
                 this.currentFolderId = null;
                 this.currentQuizId = null;
                 this.renderLibrary();
                 this.switchScreen('library');
+                if(pushHistory) history.pushState({screen: 'library'}, '', '');
             },
 
             goBack() {
-                if (!this.ui.screens.folder.classList.contains('hidden-el')) {
-                    this.goHome();
-                } else {
-                    if (this.ui.globalAudio) {
-                        this.ui.globalAudio.pause();
-                        this.ui.globalAudio.currentTime = 0;
-                    }
-                    this.currentQuizId = null; 
-                    this.openFolder(this.currentFolderId);
-                }
+                // Sử dụng History API thay vì gọi hàm trực tiếp
+                history.back();
             },
 
             openCreateModal() {
@@ -768,10 +825,11 @@
                 }
             },
 
-            openFolder(folderId) {
+            openFolder(folderId, pushHistory = true) {
                 this.currentFolderId = folderId;
                 this.renderFolder();
                 this.switchScreen('folder');
+                if(pushHistory) history.pushState({screen: 'folder', folderId: folderId}, '', '');
             },
 
             renderLibrary() {
@@ -805,7 +863,7 @@
 
             renderFolder() {
                 const folder = this.library.find(f => f.id === this.currentFolderId);
-                if (!folder) return this.goHome();
+                if (!folder) return this.goHome(false);
                 document.getElementById('currentFolderName').innerText = folder.name;
                 this.ui.quizzesContainer.innerHTML = '';
                 if (folder.quizzes.length === 0) {
@@ -854,19 +912,20 @@
             },
 
             // --- QUIZ ---
-            startQuiz(quizId) {
+            startQuiz(quizId, pushHistory = true) {
                 this.currentQuizId = quizId;
                 const folder = this.library.find(f => f.id === this.currentFolderId);
                 const quiz = folder.quizzes.find(q => q.id === quizId);
                 this.ui.fileNameDisplay.innerText = `FILE: ${quiz.name}`;
                 this.ui.fileNameDisplay.classList.remove('hidden-el');
+                
                 if (quiz.progress) {
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
                     if (this.runtime.currentIndex >= this.runtime.playQueue.length && 
                         this.runtime.wrongIndices.length === 0 && !this.runtime.isReviewMode) {
                          this.showResult();
                     } else {
-                        this.switchScreen('quiz');
+                        this.switchScreen('quiz', false); // No internal switch history
                         this.renderQuestion();
                     }
                 } else {
@@ -878,10 +937,12 @@
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
                     this.runtime.currentIndex = 0;
-                    this.switchScreen('quiz');
+                    this.switchScreen('quiz', false);
                     this.renderQuestion();
                 }
                 this.checkRestoreVisibility('quiz');
+                
+                if(pushHistory) history.pushState({screen: 'quiz', quizId: quizId}, '', '');
             },
 
             saveQuizProgress() {
@@ -1013,7 +1074,7 @@
             },
 
             showResult() {
-                this.switchScreen('result');
+                this.switchScreen('result', false);
                 document.getElementById('resRight').innerText = this.runtime.score;
                 document.getElementById('resTotal').innerText = this.runtime.questions.length;
                 if (this.runtime.score === this.runtime.questions.length) {
