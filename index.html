@@ -4,17 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>nQUIZ - Cloud Sync</title>
+    <title>nQUIZ</title>
     
-    <!-- FAVICON (Icon trên tab trình duyệt) -->
+    <!-- FAVICON -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
 
-    <!-- Libraries -->
+    <!-- TAILWIND CONFIG (Quan trọng: Kích hoạt Dark Mode theo Class) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Kích hoạt chế độ tối bằng class 'dark'
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            850: '#1f2937',
+                            900: '#111827',
+                            950: '#030712',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Libraries -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -28,9 +46,10 @@
             --bg-body: #f3f4f6;
         }
 
-        body.dark-mode {
-            --text-main: #ffffff;
-            --bg-body: #000000;
+        /* DARK MODE VARS */
+        html.dark body {
+            --text-main: #e5e7eb; /* Chữ trắng xám nhẹ cho đỡ chói */
+            --bg-body: #000000;   /* Nền ĐEN TUYỆT ĐỐI */
         }
 
         body {
@@ -39,7 +58,6 @@
             color: var(--text-main);
             transition: background-color 0.3s ease, color 0.3s ease;
             min-height: 100vh;
-            /* Quan trọng: Chặn kéo xuống reload trên mobile */
             overscroll-behavior-y: contain; 
         }
 
@@ -52,15 +70,15 @@
             border-radius: 20px;
         }
 
-        body.dark-mode .glass-panel {
-            background: rgba(18, 18, 18, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        html.dark .glass-panel {
+            background: rgba(18, 18, 18, 0.9); /* Nền panel tối hơn */
+            border: 1px solid #333; /* Viền rõ hơn */
         }
 
         /* Typography */
         #questionText {
             font-weight: 500; 
-            line-height: 1.5;
+            line-height: 1.6;
             color: var(--text-main) !important;
         }
         
@@ -87,26 +105,15 @@
             border-bottom-style: solid;
             background-color: rgba(234, 88, 12, 0.15);
         }
-        body.dark-mode .highlight-keyword { color: #fbbf24; border-bottom-color: #fbbf24; }
+        html.dark .highlight-keyword { color: #fbbf24; border-bottom-color: #fbbf24; }
 
-        /* Custom Modal */
-        #customModal {
-            position: fixed; inset: 0; z-index: 9999;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        /* Login Screen */
+        #loginScreen {
+            transition: opacity 0.3s;
         }
-        #customModal.active { opacity: 1; pointer-events: auto; }
-        
-        .modal-content {
-            background: white; width: 90%; max-width: 320px;
-            padding: 24px; border-radius: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            transform: scale(0.95); transition: transform 0.3s;
+        html.dark #loginScreen {
+            background-color: #000000;
         }
-        body.dark-mode .modal-content { background: #1f2937; border: 1px solid #374151; }
-        #customModal.active .modal-content { transform: scale(1); }
 
         /* Restore FAB */
         .restore-fab {
@@ -142,35 +149,60 @@
         }
         .help-fab:active { transform: scale(0.95); }
 
-        /* TOAST NOTIFICATION (Cho tính năng Exit) */
+        /* Toast */
         #toast {
             position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: white;
+            background: rgba(50, 50, 50, 0.95); color: white;
             padding: 10px 20px; border-radius: 20px;
             font-size: 14px; z-index: 9999;
             opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            border: 1px solid #444;
         }
         #toast.show { opacity: 1; }
 
-        /* Cards */
+        /* Answer Card Styling */
         .answer-card {
             background-color: #ffffff; color: #1f2937;
             border: 1px solid #e5e7eb; position: relative;
             touch-action: manipulation; 
         }
-        body.dark-mode .answer-card { background-color: #1f2937; color: #f9fafb; border-color: #374151; }
-        .answer-correct { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
-        body.dark-mode .answer-correct { background-color: #064e3b !important; color: #d1fae5 !important; border-color: #059669 !important; }
-        .answer-wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
-        body.dark-mode .answer-wrong { background-color: #7f1d1d !important; color: #fee2e2 !important; border-color: #dc2626 !important; }
+        html.dark .answer-card { 
+            background-color: #111827; /* Gray-900 */
+            color: #e5e7eb; 
+            border-color: #374151; /* Gray-700 */
+        }
+        html.dark .answer-card:hover {
+            background-color: #1f2937; /* Gray-800 */
+            border-color: #4b5563;
+        }
 
+        .answer-correct { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
+        html.dark .answer-correct { background-color: #064e3b !important; color: #d1fae5 !important; border-color: #059669 !important; }
+        
+        .answer-wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
+        html.dark .answer-wrong { background-color: #7f1d1d !important; color: #fee2e2 !important; border-color: #dc2626 !important; }
+
+        /* --- SỐ THỨ TỰ 1,2,3,4 --- */
+        .key-badge {
+            background: #f3f4f6; /* Gray-100 */
+            color: #374151;      /* Gray-700 */
+            padding: 2px 8px; border-radius: 6px; font-size: 0.85em; margin-right: 12px; font-weight: 800; min-width: 28px; text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+        html.dark .key-badge { 
+            background: #374151; /* Gray-700 */
+            color: #ffffff;      /* White - Rõ ràng trên nền đen */
+            border-color: #4b5563;
+        }
+
+        /* Buttons */
         .btn-gold {
             background: linear-gradient(135deg, #B8860B 0%, #D2691E 100%);
             color: white; box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
         }
         .btn-gold:active { transform: scale(0.98); }
 
-        /* Login Inputs */
+        /* Inputs */
         .auth-input {
             width: 100%; padding: 12px 16px; margin-bottom: 12px;
             border-radius: 12px; border: 1px solid #e5e7eb;
@@ -180,11 +212,11 @@
         .auth-input:focus {
             outline: none; border-color: #B8860B; box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.2);
         }
-        body.dark-mode .auth-input {
-            background-color: #374151; border-color: #4b5563; color: white;
+        html.dark .auth-input {
+            background-color: #1f2937; border-color: #374151; color: white;
         }
 
-        /* User Dropdown */
+        /* Dropdown */
         .user-dropdown {
             position: absolute; right: 0; top: 120%;
             background: white; border-radius: 12px;
@@ -196,12 +228,29 @@
             transition: all 0.2s ease-out;
             opacity: 0; pointer-events: none; transform: scale(0.95);
         }
-        .user-dropdown.active {
-            opacity: 1; pointer-events: auto; transform: scale(1);
+        .user-dropdown.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+        html.dark .user-dropdown {
+            background: #1f2937; border-color: #374151; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
         }
-        body.dark-mode .user-dropdown {
-            background: #1f2937; border-color: #374151;
+
+        /* Modal */
+        .modal-content {
+            background: white; width: 90%; max-width: 320px;
+            padding: 24px; border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: scale(0.95); transition: transform 0.3s;
         }
+        html.dark .modal-content { 
+            background: #111827; border: 1px solid #374151; 
+        }
+        #customModal {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        #customModal.active { opacity: 1; pointer-events: auto; }
+        #customModal.active .modal-content { transform: scale(1); }
 
         .hidden-el { display: none !important; }
         .fade-in { animation: fadeIn 0.3s ease-out; }
@@ -212,7 +261,7 @@
 
     <audio id="globalAudio" preload="auto"></audio>
 
-    <button id="themeToggle" class="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-lg active:scale-90 transition">
+    <button id="themeToggle" class="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-white dark:bg-gray-800 border dark:border-gray-600 flex items-center justify-center shadow-lg active:scale-90 transition">
         <i class="fas fa-moon text-gray-600 dark:text-yellow-400"></i>
     </button>
     
@@ -224,7 +273,7 @@
         <i class="fas fa-lightbulb"></i>
     </a>
 
-    <!-- TOAST NOTIFICATION -->
+    <!-- TOAST -->
     <div id="toast">🔙 Bấm lần nữa để thoát</div>
 
     <!-- LOGIN SCREEN -->
@@ -269,7 +318,7 @@
             <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-white">Tạo Sách Mới</h3>
             <input type="text" id="modalInput" placeholder="Nhập tên sách..." class="w-full p-3 border rounded-lg mb-4 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500">
             <div class="flex justify-end gap-3">
-                <button onclick="app.closeModal()" class="px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">Hủy</button>
+                <button onclick="app.closeModal()" class="px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">Hủy</button>
                 <button onclick="app.confirmCreateFolder()" class="px-4 py-2 rounded-lg bg-yellow-600 text-white font-bold shadow">Tạo</button>
             </div>
         </div>
@@ -290,14 +339,14 @@
                 <!-- User Profile Trigger -->
                 <div class="relative">
                     <div id="userProfileTrigger" class="flex items-center gap-2 cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition select-none">
-                        <span id="userName" class="text-xs font-bold text-gray-500 hidden md:block max-w-[100px] truncate">User</span>
-                        <img id="userAvatar" src="" class="w-10 h-10 rounded-full border border-gray-300 hidden object-cover shadow-sm">
-                        <div id="defaultAvatar" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 hidden shadow-sm">
+                        <span id="userName" class="text-xs font-bold text-gray-500 dark:text-gray-400 hidden md:block max-w-[100px] truncate">User</span>
+                        <img id="userAvatar" src="" class="w-10 h-10 rounded-full border border-gray-300 dark:border-gray-600 hidden object-cover shadow-sm">
+                        <div id="defaultAvatar" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 border dark:border-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-300 hidden shadow-sm">
                             <i class="fas fa-user"></i>
                         </div>
                     </div>
 
-                    <!-- Dropdown Menu -->
+                    <!-- Dropdown -->
                     <div id="userDropdown" class="user-dropdown">
                         <div class="p-3 border-b border-gray-100 dark:border-gray-700">
                             <p class="text-xs text-gray-500 dark:text-gray-400">Đăng nhập bởi</p>
@@ -310,7 +359,7 @@
                 </div>
 
                 <!-- Back Button -->
-                <button id="homeBtn" class="hidden-el w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition shadow-sm ml-1" onclick="app.goBack()">
+                <button id="homeBtn" class="hidden-el w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition shadow-sm ml-1 border dark:border-gray-700" onclick="app.goBack()">
                     <i class="fas fa-arrow-left text-xl"></i>
                 </button>
             </div>
@@ -436,7 +485,7 @@
     </main>
 
     <script>
-        // --- 1. FIREBASE CONFIGURATION (BẠN CẦN ĐIỀN VÀO ĐÂY) ---
+        // --- 1. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyAPw8m0-45L79uIh_y8MaAcf9JyM9vGDKk",
             authDomain: "nquiz-data.firebaseapp.com",
@@ -467,7 +516,7 @@
             currentFolderId: null,
             currentQuizId: null,
             isRegisterMode: false,
-            exitAttempt: false, // Biến đếm số lần thoát
+            exitAttempt: false,
 
             runtime: {
                 questions: [], playQueue: [], wrongIndices: [], 
@@ -508,9 +557,9 @@
 
             init() {
                 const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if(isDark) document.body.classList.add('dark-mode');
+                if(isDark) document.documentElement.classList.add('dark');
                 document.getElementById('themeToggle').addEventListener('click', () => {
-                    document.body.classList.toggle('dark-mode');
+                    document.documentElement.classList.toggle('dark');
                 });
 
                 this.ui.input.addEventListener('change', (e) => this.handleFile(e));
@@ -543,7 +592,6 @@
                     }
                 });
 
-                // Dropdown Toggle
                 const profileTrigger = document.getElementById('userProfileTrigger');
                 const dropdown = document.getElementById('userDropdown');
                 profileTrigger.addEventListener('click', (e) => {
@@ -556,7 +604,6 @@
                     }
                 });
 
-                // Auth
                 auth.onAuthStateChanged((user) => {
                     if (user) {
                         currentUser = user;
@@ -574,8 +621,6 @@
                             document.getElementById('defaultAvatar').classList.remove('hidden');
                         }
                         this.loadLibraryFromCloud();
-                        
-                        // SETUP HISTORY NAVIGATION
                         this.setupHistory();
                     } else {
                         this.ui.loginScreen.classList.remove('hidden-el');
@@ -585,40 +630,28 @@
 
             // --- HISTORY NAVIGATION ---
             setupHistory() {
-                // Đẩy 1 state ảo vào history để chặn thoát ngay
                 history.replaceState({ screen: 'library' }, '', '');
                 history.pushState({ screen: 'library' }, '', '');
 
                 window.onpopstate = (event) => {
                     const state = event.state;
-
-                    // Trường hợp 1: Người dùng vuốt Back ở màn hình chính (Library)
-                    // State lúc này sẽ là null (hoặc về trang trước khi vào web)
                     if (!state) {
                         if (this.exitAttempt) {
-                            // Cho phép thoát (không làm gì cả, trình duyệt tự back)
                             history.back();
                         } else {
-                            // Chặn thoát, hiện Toast
                             this.showToast();
-                            history.pushState({ screen: 'library' }, '', ''); // Đẩy lại state để giữ ở app
+                            history.pushState({ screen: 'library' }, '', '');
                             this.exitAttempt = true;
-                            // Reset sau 2 giây
                             setTimeout(() => { this.exitAttempt = false; }, 2000);
                         }
                         return;
                     }
-
-                    // Trường hợp 2: Điều hướng nội bộ (Folder, Quiz)
                     if (state.screen === 'folder') {
                         this.currentFolderId = state.folderId;
                         this.renderFolder();
-                        this.switchScreen('folder', false); // false = không push state mới
+                        this.switchScreen('folder', false);
                     } else if (state.screen === 'quiz') {
-                        // Tùy chọn: có thể cho phép back về quiz nếu muốn
-                        // Nhưng thường UX tốt là back về folder
                         this.currentQuizId = state.quizId;
-                        // Logic restore quiz (nếu cần) hoặc back về folder
                         this.openFolder(this.currentFolderId, false);
                     } else if (state.screen === 'library') {
                         this.goHome(false);
@@ -721,14 +754,12 @@
                 }
             },
 
-            // --- MULTI-FILE IMPORT ---
+            // --- FILE ---
             handleFile(e) {
                 const files = e.target.files;
                 if (!files || files.length === 0) return;
-
                 this.ui.loadingIndicator.classList.remove('hidden');
                 this.ui.loadingIndicator.querySelector('p').innerText = `Đang xử lý ${files.length} file...`;
-
                 const promises = Array.from(files).map(file => {
                     return new Promise((resolve) => {
                         const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
@@ -743,11 +774,9 @@
                         reader.readAsArrayBuffer(file);
                     });
                 });
-
                 Promise.all(promises).then(results => {
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     let count = 0;
-                    
                     results.forEach(res => {
                         const questions = [];
                         res.rows.forEach(r => {
@@ -759,7 +788,6 @@
                                 });
                             }
                         });
-
                         if (questions.length > 0) {
                             folder.quizzes.push({
                                 id: Date.now() + Math.random(), 
@@ -770,20 +798,17 @@
                             count++;
                         }
                     });
-
                     this.saveLibrary(); 
                     this.renderFolder();
-                    
                     this.ui.input.value = '';
                     this.ui.loadingIndicator.classList.add('hidden');
                     this.ui.loadingIndicator.querySelector('p').innerText = "Đang tải dữ liệu..."; 
-                    
                     if(count > 0) alert(`Đã thêm thành công ${count} đề thi!`);
                     else alert("Không tìm thấy dữ liệu hợp lệ trong các file đã chọn.");
                 });
             },
 
-            // --- APP LOGIC ---
+            // --- UI LOGIC ---
             switchScreen(screenName, pushHistory = true) {
                 Object.values(this.ui.screens).forEach(el => el.classList.add('hidden-el'));
                 this.ui.screens[screenName].classList.remove('hidden-el');
@@ -801,7 +826,6 @@
             },
 
             goBack() {
-                // Sử dụng History API thay vì gọi hàm trực tiếp
                 history.back();
             },
 
@@ -847,7 +871,7 @@
                     document.getElementById('emptyLibraryMsg').classList.add('hidden');
                     this.library.forEach(folder => {
                         const div = document.createElement('div');
-                        div.className = "bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex justify-between items-center active:bg-gray-50 dark:active:bg-gray-700 transition";
+                        div.className = "bg-white dark:bg-[#121212] p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex justify-between items-center active:bg-gray-50 dark:active:bg-gray-800 transition";
                         div.onclick = () => this.openFolder(folder.id);
                         div.innerHTML = `
                             <div class="flex items-center overflow-hidden">
@@ -884,7 +908,7 @@
                         if (isDone) statusHtml = '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md font-bold">Đã xong</span>';
                         else if (hasProgress) statusHtml = '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold">Làm dở</span>';
                         const div = document.createElement('div');
-                        div.className = "bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center active:scale-[0.99] transition";
+                        div.className = "bg-white dark:bg-[#121212] p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center active:scale-[0.99] transition";
                         div.onclick = () => this.startQuiz(quiz.id);
                         div.innerHTML = `
                             <div class="flex items-center min-w-0 flex-1 mr-2">
@@ -918,21 +942,19 @@
                 }
             },
 
-            // --- QUIZ ---
             startQuiz(quizId, pushHistory = true) {
                 this.currentQuizId = quizId;
                 const folder = this.library.find(f => f.id === this.currentFolderId);
                 const quiz = folder.quizzes.find(q => q.id === quizId);
                 this.ui.fileNameDisplay.innerText = `FILE: ${quiz.name}`;
                 this.ui.fileNameDisplay.classList.remove('hidden-el');
-                
                 if (quiz.progress) {
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
                     if (this.runtime.currentIndex >= this.runtime.playQueue.length && 
                         this.runtime.wrongIndices.length === 0 && !this.runtime.isReviewMode) {
                          this.showResult();
                     } else {
-                        this.switchScreen('quiz', false); // No internal switch history
+                        this.switchScreen('quiz', false);
                         this.renderQuestion();
                     }
                 } else {
@@ -948,7 +970,6 @@
                     this.renderQuestion();
                 }
                 this.checkRestoreVisibility('quiz');
-                
                 if(pushHistory) history.pushState({screen: 'quiz', quizId: quizId}, '', '');
             },
 
@@ -1022,7 +1043,7 @@
                 answers.forEach((ans, idx) => {
                     const btn = document.createElement('button');
                     btn.className = 'answer-card w-full text-left p-4 rounded-xl font-medium shadow-sm flex items-center min-h-[60px] active:scale-[0.98] transition';
-                    btn.innerHTML = `<span class="w-6 h-6 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold mr-3 flex-shrink-0">${idx + 1}</span> <span>${ans.text}</span>`;
+                    btn.innerHTML = `<span class="key-badge">${idx + 1}</span> <span>${ans.text}</span>`;
                     btn.onclick = () => this.handleAnswer(btn, ans, qIdx);
                     this.ui.ansContainer.appendChild(btn);
                 });
