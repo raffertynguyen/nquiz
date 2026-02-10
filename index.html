@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
+    <title>nQUIZ - Cloud Sync</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #B8860B;
+            --text-main: #1f2937;
+            --bg-body: #f3f4f6;
+        }
+
+        body.dark-mode {
+            --text-main: #ffffff;
+            --bg-body: #000000;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            overscroll-behavior-y: contain; 
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+        }
+
+        body.dark-mode .glass-panel {
+            background: rgba(18, 18, 18, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Typography */
+        #questionText {
+            font-weight: 500; 
+            line-height: 1.5;
+            color: var(--text-main) !important;
+        }
+        
+        /* Highlight Keyword */
+        .highlight-keyword {
+            font-weight: 800;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-bottom: 2px dashed #d97706;
+            color: #d97706;
+            border-radius: 4px;
+        }
+        .highlight-keyword::after {
+            content: '\f028'; 
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 0.75em;
+            margin-left: 4px;
+            vertical-align: middle;
+            opacity: 0.6;
+        }
+        .highlight-keyword.playing {
+            color: #ea580c !important; 
+            border-bottom-style: solid;
+            background-color: rgba(234, 88, 12, 0.15);
+        }
+        body.dark-mode .highlight-keyword { color: #fbbf24; border-bottom-color: #fbbf24; }
+
+        /* Custom Modal */
+        #customModal {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        #customModal.active { opacity: 1; pointer-events: auto; }
+        
+        .modal-content {
+            background: white; width: 90%; max-width: 320px;
+            padding: 24px; border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(0.95); transition: transform 0.3s;
+        }
+        body.dark-mode .modal-content { background: #1f2937; border: 1px solid #374151; }
+        #customModal.active .modal-content { transform: scale(1); }
+
+        /* Restore FAB */
+        .restore-fab {
+            position: fixed; bottom: 24px; right: 24px;
+            width: 56px; height: 56px; border-radius: 50%;
+            background: #2563eb; color: white;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: pointer; z-index: 100;
+            transition: transform 0.2s, background 0.2s;
+            animation: pulse 2s infinite;
+        }
+        .restore-fab:active { transform: scale(0.95); background: #1d4ed8; }
+        .restore-fab.hidden { display: none; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+
+        /* Help FAB */
+        .help-fab {
+            position: fixed; bottom: 24px; left: 24px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: #f59e0b;
+            color: white;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; cursor: pointer; z-index: 100;
+            transition: transform 0.2s;
+            text-decoration: none;
+        }
+        .help-fab:active { transform: scale(0.95); }
+
+        /* Cards */
+        .answer-card {
+            background-color: #ffffff; color: #1f2937;
+            border: 1px solid #e5e7eb; position: relative;
+            touch-action: manipulation; 
+        }
+        body.dark-mode .answer-card { background-color: #1f2937; color: #f9fafb; border-color: #374151; }
+        .answer-correct { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
+        body.dark-mode .answer-correct { background-color: #064e3b !important; color: #d1fae5 !important; border-color: #059669 !important; }
+        .answer-wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
+        body.dark-mode .answer-wrong { background-color: #7f1d1d !important; color: #fee2e2 !important; border-color: #dc2626 !important; }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #B8860B 0%, #D2691E 100%);
+            color: white; box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
+        }
+        .btn-gold:active { transform: scale(0.98); }
+
+        /* Login Inputs */
+        .auth-input {
+            width: 100%; padding: 12px 16px; margin-bottom: 12px;
+            border-radius: 12px; border: 1px solid #e5e7eb;
+            background-color: #f9fafb; font-size: 14px;
+            transition: all 0.2s;
+        }
+        .auth-input:focus {
+            outline: none; border-color: #B8860B; box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.2);
+        }
+        body.dark-mode .auth-input {
+            background-color: #374151; border-color: #4b5563; color: white;
+        }
+
+        .hidden-el { display: none !important; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center justify-center">
+
+    <audio id="globalAudio" preload="auto"></audio>
+
+    <button id="themeToggle" class="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-lg active:scale-90 transition">
+        <i class="fas fa-moon text-gray-600 dark:text-yellow-400"></i>
+    </button>
+    
+    <button id="restoreBtn" class="restore-fab hidden" title="Khôi phục bài làm">
+        <i class="fas fa-history"></i>
+    </button>
+
+    <a href="https://docs.google.com/document/d/1tXOoP8kUVeNGZlsQg7R80ZXqkhAgTjvqlieO2HFztFU/edit?usp=sharing" target="_blank" class="help-fab" title="Hướng dẫn">
+        <i class="fas fa-lightbulb"></i>
+    </a>
+
+    <!-- LOGIN SCREEN (Cập nhật Email/Password) -->
+    <div id="loginScreen" class="fixed inset-0 z-[9999] bg-white dark:bg-black flex flex-col items-center justify-center p-6 transition-all duration-500">
+        <div class="text-center max-w-sm w-full">
+            <i class="fas fa-cloud text-6xl text-yellow-500 mb-6 animate-bounce"></i>
+            <h1 class="text-3xl font-bold mb-2 text-gray-900 dark:text-white">nQUIZ <span class="text-yellow-500">Cloud</span></h1>
+            <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">Đồng bộ dữ liệu an toàn & bảo mật</p>
+            
+            <!-- Email Form -->
+            <div class="w-full text-left">
+                <input type="email" id="emailInput" placeholder="Email" class="auth-input">
+                <input type="password" id="passwordInput" placeholder="Mật khẩu" class="auth-input">
+                
+                <button id="emailAuthBtn" onclick="app.handleEmailAuth()" class="w-full py-3 rounded-xl bg-yellow-600 text-white font-bold shadow-lg active:bg-yellow-700 transition mb-4">
+                    Đăng nhập
+                </button>
+                
+                <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+                    <span id="authSwitchText">Chưa có tài khoản?</span>
+                    <button onclick="app.toggleAuthMode()" class="text-yellow-600 dark:text-yellow-500 font-bold hover:underline ml-1">
+                        <span id="authSwitchBtn">Đăng ký ngay</span>
+                    </button>
+                </p>
+            </div>
+
+            <!-- Divider -->
+            <div class="relative w-full mb-6">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200 dark:border-gray-800"></div></div>
+                <div class="relative flex justify-center text-xs uppercase"><span class="px-2 bg-white dark:bg-black text-gray-400">Hoặc</span></div>
+            </div>
+            
+            <!-- Google Button -->
+            <button onclick="app.loginGoogle()" class="w-full py-3 px-4 rounded-xl bg-white border border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
+                Tiếp tục với Google
+            </button>
+            <p id="loginError" class="text-red-500 text-xs mt-4 hidden bg-red-50 p-2 rounded border border-red-100"></p>
+        </div>
+    </div>
+
+    <!-- CUSTOM MODAL -->
+    <div id="customModal">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-white">Tạo Sách Mới</h3>
+            <input type="text" id="modalInput" placeholder="Nhập tên sách..." class="w-full p-3 border rounded-lg mb-4 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500">
+            <div class="flex justify-end gap-3">
+                <button onclick="app.closeModal()" class="px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">Hủy</button>
+                <button onclick="app.confirmCreateFolder()" class="px-4 py-2 rounded-lg bg-yellow-600 text-white font-bold shadow">Tạo</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="w-full max-w-4xl glass-panel min-h-[85vh] flex flex-col p-5 relative overflow-hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+            <div class="flex items-center">
+                <h1 class="text-xl md:text-2xl font-bold text-yellow-600 dark:text-yellow-500 flex items-center cursor-pointer select-none" onclick="app.goHome()">
+                    <i class="fas fa-graduation-cap mr-2"></i> 
+                    nQUIZ
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <span id="userName" class="text-xs font-bold text-gray-500 hidden md:block max-w-[100px] truncate">User</span>
+                <!-- Avatar thật (nếu có) -->
+                <img id="userAvatar" src="" class="w-8 h-8 rounded-full border border-gray-300 hidden object-cover">
+                <!-- Avatar mặc định (icon) -->
+                <div id="defaultAvatar" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300 hidden">
+                    <i class="fas fa-user"></i>
+                </div>
+
+                <!-- Back Button -->
+                <button id="homeBtn" class="hidden-el w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition" onclick="app.goBack()">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <button onclick="app.logout()" class="text-xs text-red-500 hover:text-red-700 ml-1" title="Đăng xuất">
+                    <i class="fas fa-sign-out-alt text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- SCREEN 1: LIBRARY -->
+        <section id="libraryScreen" class="flex-1 fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold dark:text-white uppercase tracking-wide">KỆ SÁCH</h2>
+                <button onclick="app.openCreateModal()" class="w-10 h-10 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center active:bg-green-700">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <div id="loadingIndicator" class="text-center text-yellow-600 py-10 hidden">
+                <i class="fas fa-circle-notch fa-spin text-3xl"></i>
+                <p class="mt-2 text-sm">Đang tải dữ liệu...</p>
+            </div>
+
+            <div id="foldersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-20">
+                <!-- Folders rendered here -->
+            </div>
+            
+            <div id="emptyLibraryMsg" class="text-center text-gray-400 mt-20 hidden">
+                <i class="fas fa-book-open text-6xl mb-4 opacity-20"></i>
+                <p>Thư viện trống.</p>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: FOLDER DETAIL -->
+        <section id="folderScreen" class="hidden-el flex-1 fade-in">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-3">
+                <h2 id="currentFolderName" class="text-xl font-bold text-yellow-700 dark:text-yellow-400 break-words leading-tight">
+                    <!-- Book Name -->
+                </h2>
+                <div class="w-full md:w-auto">
+                    <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden">
+                    <label for="excelInput" class="btn-gold w-full md:w-auto px-4 py-3 rounded-xl shadow-lg cursor-pointer text-sm font-bold flex items-center justify-center active:scale-95 transition">
+                        <i class="fas fa-file-import mr-2"></i> THÊM ĐỀ
+                    </label>
+                </div>
+            </div>
+
+            <div id="quizzesContainer" class="space-y-3 pb-20">
+                <!-- Quizzes list rendered here -->
+            </div>
+            
+             <div id="emptyFolderMsg" class="text-center text-gray-400 mt-10 hidden px-4">
+                <i class="fas fa-file-excel text-5xl mb-4 opacity-20"></i>
+                <p class="font-bold mb-4">Chưa có đề thi nào.</p>
+                <div class="text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded-lg inline-block text-left border border-gray-200 dark:border-gray-700">
+                    <p class="font-bold text-gray-600 dark:text-gray-300 mb-2 flex items-center"><i class="fas fa-info-circle mr-2"></i> Hướng dẫn Import Excel:</p>
+                    <ul class="list-disc list-inside space-y-1 text-xs text-gray-500 dark:text-gray-400">
+                        <li>Định dạng: <strong>.xlsx</strong> hoặc <strong>.xls</strong></li>
+                        <li>Cột A: <strong>Câu hỏi</strong></li>
+                        <li>Cột B: <strong>Đáp án ĐÚNG</strong></li>
+                        <li>Cột C: Đáp án SAI</li>
+                        <li>Cột D: Đáp án SAI</li>
+                        <li>Cột E: Đáp án SAI</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: QUIZ -->
+        <section id="quizScreen" class="hidden-el flex-1 flex flex-col fade-in">
+            <div class="flex flex-col gap-2 mb-4">
+                <div class="flex justify-between items-center">
+                    <span id="fileNameDisplay" class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 rounded text-xs font-bold border border-yellow-200 dark:border-yellow-700 max-w-[70%] truncate">
+                        FILE NAME
+                    </span>
+                    <button id="shuffleToggle" class="text-gray-400 hover:text-yellow-500 transition px-2" title="Xáo trộn">
+                        <i class="fas fa-random"></i>
+                    </button>
+                </div>
+                
+                <div class="flex justify-between items-end">
+                    <span id="questionCounter" class="font-bold text-lg text-gray-700 dark:text-gray-300">Câu 1</span>
+                    <span id="statusBadge" class="hidden font-mono text-red-500 font-bold bg-red-100 dark:bg-red-900/50 px-2 py-0.5 rounded text-xs border border-red-200 dark:border-red-800">LÀM LẠI</span>
+                </div>
+            </div>
+            
+            <div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mb-6 overflow-hidden">
+                <div id="progressBar" class="bg-yellow-500 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-center w-full">
+                <h2 id="questionText" class="text-lg md:text-xl mb-6 text-center transition-colors"></h2>
+                <div id="answersContainer" class="grid grid-cols-1 gap-3 pb-24"></div>
+            </div>
+
+            <div id="actionArea" class="fixed bottom-6 left-0 right-0 flex justify-center opacity-0 transition-opacity pointer-events-none z-50 px-4">
+                <button id="nextBtn" class="bg-gray-900 dark:bg-white text-white dark:text-black w-full max-w-md py-3 rounded-xl shadow-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition">
+                    Tiếp theo <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: RESULT -->
+        <section id="resultScreen" class="hidden-el flex-1 flex flex-col items-center justify-center fade-in text-center">
+            <i class="fas fa-award text-6xl text-yellow-500 mb-4 animate-bounce"></i>
+            <h2 class="text-3xl font-bold mb-2 dark:text-white">Hoàn thành!</h2>
+            <div class="grid grid-cols-2 gap-4 my-8 w-full max-w-sm">
+                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-2xl border border-green-200 dark:border-green-800">
+                    <div class="text-3xl font-bold text-green-600 dark:text-green-400" id="resRight">0</div>
+                    <div class="text-xs uppercase text-green-800 dark:text-green-300 font-bold mt-1">Đúng</div>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-200 dark:border-blue-800">
+                    <div class="text-3xl font-bold text-blue-600 dark:text-blue-400" id="resTotal">0</div>
+                    <div class="text-xs uppercase text-blue-800 dark:text-blue-300 font-bold mt-1">Tổng câu</div>
+                </div>
+            </div>
+            <div class="flex flex-col w-full max-w-xs gap-3">
+                <button onclick="app.restartQuiz()" class="w-full py-3 rounded-xl bg-yellow-600 text-white font-bold shadow-lg active:bg-yellow-700">
+                    <i class="fas fa-redo mr-2"></i> Làm lại
+                </button>
+                <button onclick="app.goHome()" class="w-full py-3 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold active:bg-gray-300">
+                    Về thư viện
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- 1. FIREBASE CONFIGURATION (BẠN CẦN ĐIỀN VÀO ĐÂY) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAPw8m0-45L79uIh_y8MaAcf9JyM9vGDKk",
+            authDomain: "nquiz-data.firebaseapp.com",
+            projectId: "nquiz-data",
+            storageBucket: "nquiz-data.firebasestorage.app",
+            messagingSenderId: "238520671984",
+            appId: "1:238520671984:web:0105afef3b3fa72372ac35",
+            measurementId: "G-Z8HNTS75XP"
+        };
+
+        // --- 2. FIREBASE INIT ---
+        let db;
+        let auth;
+        let provider;
+        let currentUser = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            provider = new firebase.auth.GoogleAuthProvider();
+        } catch (error) {
+            console.error("Firebase chưa được cấu hình đúng: ", error);
+        }
+
+        const app = {
+            library: [],
+            currentFolderId: null,
+            currentQuizId: null,
+            isRegisterMode: false, // Trạng thái Đăng nhập/Đăng ký
+
+            runtime: {
+                questions: [], playQueue: [], wrongIndices: [], 
+                currentIndex: 0, score: 0, isShuffled: true, isReviewMode: false
+            },
+
+            ui: {
+                screens: {
+                    library: document.getElementById('libraryScreen'),
+                    folder: document.getElementById('folderScreen'),
+                    quiz: document.getElementById('quizScreen'),
+                    result: document.getElementById('resultScreen')
+                },
+                foldersContainer: document.getElementById('foldersContainer'),
+                quizzesContainer: document.getElementById('quizzesContainer'),
+                homeBtn: document.getElementById('homeBtn'),
+                restoreBtn: document.getElementById('restoreBtn'),
+                input: document.getElementById('excelInput'),
+                globalAudio: document.getElementById('globalAudio'),
+                qText: document.getElementById('questionText'),
+                ansContainer: document.getElementById('answersContainer'),
+                progress: document.getElementById('progressBar'),
+                counter: document.getElementById('questionCounter'),
+                nextBtn: document.getElementById('nextBtn'),
+                actionArea: document.getElementById('actionArea'),
+                statusBadge: document.getElementById('statusBadge'),
+                fileNameDisplay: document.getElementById('fileNameDisplay'),
+                modal: document.getElementById('customModal'),
+                modalInput: document.getElementById('modalInput'),
+                
+                // Login UI
+                loginScreen: document.getElementById('loginScreen'),
+                loadingIndicator: document.getElementById('loadingIndicator'),
+                emailInput: document.getElementById('emailInput'),
+                passwordInput: document.getElementById('passwordInput'),
+                emailAuthBtn: document.getElementById('emailAuthBtn'),
+                loginError: document.getElementById('loginError')
+            },
+
+            init() {
+                // Theme Logic
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if(isDark) document.body.classList.add('dark-mode');
+                document.getElementById('themeToggle').addEventListener('click', () => {
+                    document.body.classList.toggle('dark-mode');
+                });
+
+                // Events
+                this.ui.input.addEventListener('change', (e) => this.handleFile(e));
+                this.ui.nextBtn.addEventListener('click', () => this.nextQuestion());
+                this.ui.restoreBtn.addEventListener('click', () => this.restoreCurrentProgress());
+                this.ui.modalInput.addEventListener('keydown', (e) => {
+                    if(e.key === 'Enter') this.confirmCreateFolder();
+                });
+                document.getElementById('shuffleToggle').addEventListener('click', (e) => {
+                    this.runtime.isShuffled = !this.runtime.isShuffled;
+                    e.currentTarget.classList.toggle('text-yellow-500');
+                });
+                this.ui.qText.addEventListener('click', (e) => {
+                    const target = e.target.closest('.highlight-keyword');
+                    if (target) this.playGoogleAudio(target.innerText, target);
+                });
+                this.ui.globalAudio.addEventListener('ended', () => {
+                    document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
+                });
+
+                // Keydown
+                document.addEventListener('keydown', (e) => {
+                    if (this.ui.screens.quiz.classList.contains('hidden-el')) return;
+                    if (['1','2','3','4'].includes(e.key)) {
+                        const idx = parseInt(e.key) - 1;
+                        const buttons = this.ui.ansContainer.querySelectorAll('button');
+                        if (buttons[idx] && !buttons[idx].disabled) buttons[idx].click();
+                    }
+                    if (e.key === 'Enter' && !this.ui.actionArea.classList.contains('opacity-0')) {
+                        this.nextQuestion();
+                    }
+                });
+
+                // --- AUTH LISTENER ---
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        currentUser = user;
+                        this.ui.loginScreen.classList.add('hidden-el');
+                        
+                        // Xử lý hiển thị thông tin User
+                        const displayName = user.displayName || user.email.split('@')[0];
+                        document.getElementById('userName').innerText = displayName;
+                        
+                        if (user.photoURL) {
+                            document.getElementById('userAvatar').src = user.photoURL;
+                            document.getElementById('userAvatar').classList.remove('hidden');
+                            document.getElementById('defaultAvatar').classList.add('hidden');
+                        } else {
+                            document.getElementById('userAvatar').classList.add('hidden');
+                            document.getElementById('defaultAvatar').classList.remove('hidden');
+                        }
+
+                        this.loadLibraryFromCloud();
+                    } else {
+                        this.ui.loginScreen.classList.remove('hidden-el');
+                    }
+                });
+            },
+
+            // --- AUTHENTICATION ---
+            
+            toggleAuthMode() {
+                this.isRegisterMode = !this.isRegisterMode;
+                const text = document.getElementById('authSwitchText');
+                const btn = document.getElementById('authSwitchBtn');
+                
+                if (this.isRegisterMode) {
+                    this.ui.emailAuthBtn.innerText = "Đăng ký";
+                    text.innerText = "Đã có tài khoản?";
+                    btn.innerText = "Đăng nhập ngay";
+                } else {
+                    this.ui.emailAuthBtn.innerText = "Đăng nhập";
+                    text.innerText = "Chưa có tài khoản?";
+                    btn.innerText = "Đăng ký ngay";
+                }
+                this.ui.loginError.classList.add('hidden');
+            },
+
+            handleEmailAuth() {
+                const email = this.ui.emailInput.value;
+                const password = this.ui.passwordInput.value;
+                
+                if (!email || !password) {
+                    this.showLoginError("Vui lòng nhập đầy đủ Email và Mật khẩu.");
+                    return;
+                }
+
+                if (this.isRegisterMode) {
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Cập nhật tên hiển thị mặc định (lấy prefix email)
+                            const defaultName = email.split('@')[0];
+                            userCredential.user.updateProfile({
+                                displayName: defaultName
+                            });
+                        })
+                        .catch((error) => this.handleAuthError(error));
+                } else {
+                    auth.signInWithEmailAndPassword(email, password)
+                        .catch((error) => this.handleAuthError(error));
+                }
+            },
+
+            loginGoogle() {
+                auth.signInWithPopup(provider).catch((error) => this.handleAuthError(error));
+            },
+
+            handleAuthError(error) {
+                let msg = error.message;
+                // Việt hóa một số lỗi phổ biến
+                if (error.code === 'auth/wrong-password') msg = "Sai mật khẩu.";
+                else if (error.code === 'auth/user-not-found') msg = "Tài khoản không tồn tại.";
+                else if (error.code === 'auth/email-already-in-use') msg = "Email này đã được đăng ký.";
+                else if (error.code === 'auth/weak-password') msg = "Mật khẩu quá yếu (cần ít nhất 6 ký tự).";
+                else if (error.code === 'auth/invalid-email') msg = "Email không hợp lệ.";
+                
+                this.showLoginError(msg);
+            },
+
+            showLoginError(msg) {
+                this.ui.loginError.innerText = msg;
+                this.ui.loginError.classList.remove('hidden');
+            },
+
+            logout() {
+                auth.signOut().then(() => {
+                    location.reload(); 
+                });
+            },
+
+            // --- CLOUD DATA ---
+            async loadLibraryFromCloud() {
+                this.ui.loadingIndicator.classList.remove('hidden');
+                
+                try {
+                    const docRef = db.collection('users').doc(currentUser.uid);
+                    const doc = await docRef.get();
+                    
+                    if (doc.exists) {
+                        const data = doc.data();
+                        this.library = data.library || [];
+                    } else {
+                        // First time user, create empty library
+                        this.library = [];
+                        await docRef.set({ library: [] });
+                    }
+                } catch (error) {
+                    console.error("Error getting document:", error);
+                    alert("Lỗi tải dữ liệu: " + error.message);
+                } finally {
+                    this.ui.loadingIndicator.classList.add('hidden');
+                    this.checkGlobalRestore();
+                    this.renderLibrary();
+                }
+            },
+
+            async saveLibrary() {
+                if (!currentUser) return;
+                
+                try {
+                    await db.collection('users').doc(currentUser.uid).set({
+                        library: this.library
+                    });
+                } catch (error) {
+                    console.error("Error writing document: ", error);
+                }
+            },
+
+            // --- NAVIGATION ---
+            switchScreen(screenName) {
+                Object.values(this.ui.screens).forEach(el => el.classList.add('hidden-el'));
+                this.ui.screens[screenName].classList.remove('hidden-el');
+                if (screenName === 'library') {
+                    this.ui.homeBtn.classList.add('hidden-el');
+                } else {
+                    this.ui.homeBtn.classList.remove('hidden-el');
+                }
+                this.checkRestoreVisibility(screenName);
+            },
+
+            goHome() {
+                this.currentFolderId = null;
+                this.currentQuizId = null;
+                this.renderLibrary();
+                this.switchScreen('library');
+            },
+
+            goBack() {
+                if (!this.ui.screens.folder.classList.contains('hidden-el')) {
+                    this.goHome();
+                } else {
+                    if (this.ui.globalAudio) {
+                        this.ui.globalAudio.pause();
+                        this.ui.globalAudio.currentTime = 0;
+                    }
+                    this.currentQuizId = null; 
+                    this.openFolder(this.currentFolderId);
+                }
+            },
+
+            // --- MODAL ---
+            openCreateModal() {
+                this.ui.modal.classList.add('active');
+                this.ui.modalInput.value = '';
+                this.ui.modalInput.focus();
+            },
+            closeModal() {
+                this.ui.modal.classList.remove('active');
+            },
+            confirmCreateFolder() {
+                const name = this.ui.modalInput.value.trim();
+                if (name) {
+                    this.library.push({
+                        id: Date.now(),
+                        name: name,
+                        quizzes: []
+                    });
+                    this.saveLibrary(); // Sync to Cloud
+                    this.renderLibrary();
+                }
+                this.closeModal();
+            },
+
+            // --- LIBRARY ---
+            deleteFolder(id, e) {
+                e.stopPropagation();
+                if(confirm("Xóa toàn bộ sách này?")) {
+                    this.library = this.library.filter(f => f.id !== id);
+                    this.saveLibrary(); // Sync to Cloud
+                    this.renderLibrary();
+                }
+            },
+
+            openFolder(folderId) {
+                this.currentFolderId = folderId;
+                this.renderFolder();
+                this.switchScreen('folder');
+            },
+
+            renderLibrary() {
+                this.ui.foldersContainer.innerHTML = '';
+                if (this.library.length === 0) {
+                    document.getElementById('emptyLibraryMsg').classList.remove('hidden');
+                } else {
+                    document.getElementById('emptyLibraryMsg').classList.add('hidden');
+                    this.library.forEach(folder => {
+                        const div = document.createElement('div');
+                        div.className = "bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex justify-between items-center active:bg-gray-50 dark:active:bg-gray-700 transition";
+                        div.onclick = () => this.openFolder(folder.id);
+                        div.innerHTML = `
+                            <div class="flex items-center overflow-hidden">
+                                <div class="w-12 h-12 flex-shrink-0 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 mr-3">
+                                    <i class="fas fa-book text-xl"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="font-bold text-gray-800 dark:text-gray-200 truncate pr-2">${folder.name}</h3>
+                                    <p class="text-xs text-gray-500">${folder.quizzes.length} đề thi</p>
+                                </div>
+                            </div>
+                            <button onclick="app.deleteFolder(${folder.id}, event)" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                        this.ui.foldersContainer.appendChild(div);
+                    });
+                }
+            },
+
+            // --- FOLDER ---
+            renderFolder() {
+                const folder = this.library.find(f => f.id === this.currentFolderId);
+                if (!folder) return this.goHome();
+
+                document.getElementById('currentFolderName').innerText = folder.name;
+                this.ui.quizzesContainer.innerHTML = '';
+                
+                if (folder.quizzes.length === 0) {
+                    document.getElementById('emptyFolderMsg').classList.remove('hidden');
+                } else {
+                    document.getElementById('emptyFolderMsg').classList.add('hidden');
+                    folder.quizzes.forEach(quiz => {
+                        const hasProgress = quiz.progress && quiz.progress.currentIndex > 0;
+                        const isDone = quiz.progress && quiz.progress.currentIndex >= quiz.progress.playQueue.length;
+                        
+                        let statusHtml = '';
+                        if (isDone) statusHtml = '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md font-bold">Đã xong</span>';
+                        else if (hasProgress) statusHtml = '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold">Làm dở</span>';
+
+                        const div = document.createElement('div');
+                        div.className = "bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex justify-between items-center active:scale-[0.99] transition";
+                        div.onclick = () => this.startQuiz(quiz.id);
+                        div.innerHTML = `
+                            <div class="flex items-center min-w-0 flex-1 mr-2">
+                                <div class="w-10 h-10 flex-shrink-0 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-blue-500 mr-3">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="font-bold text-sm text-gray-800 dark:text-gray-200 truncate">${quiz.name}</h4>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <p class="text-xs text-gray-500">${quiz.questions.length} câu</p>
+                                        ${statusHtml}
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="app.deleteQuiz(${quiz.id}, event)" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        this.ui.quizzesContainer.appendChild(div);
+                    });
+                }
+            },
+
+            deleteQuiz(quizId, e) {
+                e.stopPropagation();
+                if(confirm("Xóa đề thi này?")) {
+                    const folder = this.library.find(f => f.id === this.currentFolderId);
+                    folder.quizzes = folder.quizzes.filter(q => q.id !== quizId);
+                    this.saveLibrary(); // Sync to Cloud
+                    this.renderFolder();
+                }
+            },
+
+            handleFile(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    this.importQuizData(rawName, json);
+                };
+                reader.readAsArrayBuffer(file);
+                this.ui.input.value = '';
+            },
+
+            importQuizData(name, rows) {
+                const questions = [];
+                rows.forEach(r => {
+                    if (r[0] && r[1]) {
+                        questions.push({
+                            q: String(r[0]),
+                            correct: String(r[1]),
+                            wrong: [r[2], r[3], r[4]].filter(x => x != null && x !== "").map(String)
+                        });
+                    }
+                });
+                if (questions.length === 0) return alert("File lỗi!");
+                const folder = this.library.find(f => f.id === this.currentFolderId);
+                folder.quizzes.push({
+                    id: Date.now(),
+                    name: name,
+                    questions: questions,
+                    progress: null
+                });
+                this.saveLibrary(); // Sync to Cloud
+                this.renderFolder();
+            },
+
+            // --- QUIZ ---
+            startQuiz(quizId) {
+                this.currentQuizId = quizId;
+                const folder = this.library.find(f => f.id === this.currentFolderId);
+                const quiz = folder.quizzes.find(q => q.id === quizId);
+
+                this.ui.fileNameDisplay.innerText = `FILE: ${quiz.name}`;
+                this.ui.fileNameDisplay.classList.remove('hidden-el');
+
+                if (quiz.progress) {
+                    this.runtime = JSON.parse(JSON.stringify(quiz.progress));
+                    if (this.runtime.currentIndex >= this.runtime.playQueue.length && 
+                        this.runtime.wrongIndices.length === 0 && !this.runtime.isReviewMode) {
+                         this.showResult();
+                    } else {
+                        this.switchScreen('quiz');
+                        this.renderQuestion();
+                    }
+                } else {
+                    this.runtime.questions = quiz.questions;
+                    this.runtime.score = 0;
+                    this.runtime.wrongIndices = [];
+                    this.runtime.isReviewMode = false;
+                    let indices = quiz.questions.map((_, i) => i);
+                    if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
+                    this.runtime.playQueue = indices;
+                    this.runtime.currentIndex = 0;
+                    this.switchScreen('quiz');
+                    this.renderQuestion();
+                }
+                this.checkRestoreVisibility('quiz');
+            },
+
+            saveQuizProgress() {
+                const folder = this.library.find(f => f.id === this.currentFolderId);
+                if(folder) {
+                    const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
+                    if(quiz) {
+                        quiz.progress = JSON.parse(JSON.stringify(this.runtime));
+                        this.saveLibrary(); // Sync to Cloud
+                    }
+                }
+            },
+
+            checkGlobalRestore() {
+                let found = false;
+                for(let f of this.library) {
+                    for(let q of f.quizzes) {
+                        if(q.progress) { found = true; break; }
+                    }
+                }
+            },
+
+            checkRestoreVisibility(screen) {
+                if (screen === 'library' || screen === 'folder') {
+                     if (this.currentQuizId && this.currentFolderId) {
+                         this.ui.restoreBtn.classList.remove('hidden');
+                         this.ui.restoreBtn.onclick = () => {
+                             this.openFolder(this.currentFolderId);
+                             this.startQuiz(this.currentQuizId);
+                         };
+                     } else {
+                         this.ui.restoreBtn.classList.add('hidden');
+                     }
+                } else {
+                    this.ui.restoreBtn.classList.add('hidden');
+                }
+            },
+
+            restoreCurrentProgress() {
+               if(this.currentFolderId && this.currentQuizId) {
+                   this.startQuiz(this.currentQuizId);
+               }
+            },
+
+            formatQuestionText(text) {
+                return text.replace(/\b([A-ZÀ-Ỹ]{2,}(?:[\s-][A-ZÀ-Ỹ]{2,})*)\b/g, (match) => {
+                    return `<span class="highlight-keyword" title="Chạm để nghe">${match}</span>`;
+                });
+            },
+
+            renderQuestion() {
+                if(this.runtime.isReviewMode) this.ui.statusBadge.classList.remove('hidden');
+                else this.ui.statusBadge.classList.add('hidden');
+
+                const qIdx = this.runtime.playQueue[this.runtime.currentIndex];
+                const qData = this.runtime.questions[qIdx];
+
+                this.ui.qText.innerHTML = this.formatQuestionText(qData.q);
+                
+                const currentNum = this.runtime.currentIndex + 1;
+                const totalNum = this.runtime.playQueue.length;
+                this.ui.counter.innerText = `Câu ${currentNum}/${totalNum}`;
+                this.ui.progress.style.width = `${(currentNum / totalNum) * 100}%`;
+                
+                this.ui.actionArea.classList.add('opacity-0');
+                this.ui.actionArea.style.pointerEvents = 'none';
+
+                let answers = [
+                    { text: qData.correct, correct: true },
+                    ...qData.wrong.map(w => ({ text: w, correct: false }))
+                ];
+                answers.sort(() => Math.random() - 0.5);
+
+                this.ui.ansContainer.innerHTML = '';
+                answers.forEach((ans, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'answer-card w-full text-left p-4 rounded-xl font-medium shadow-sm flex items-center min-h-[60px] active:scale-[0.98] transition';
+                    btn.innerHTML = `<span class="w-6 h-6 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold mr-3 flex-shrink-0">${idx + 1}</span> <span>${ans.text}</span>`;
+                    btn.onclick = () => this.handleAnswer(btn, ans, qIdx);
+                    this.ui.ansContainer.appendChild(btn);
+                });
+            },
+
+            handleAnswer(btn, ansData, qIdx) {
+                const allBtns = this.ui.ansContainer.querySelectorAll('button');
+                allBtns.forEach(b => b.disabled = true);
+
+                if (ansData.correct) {
+                    btn.classList.add('answer-correct');
+                    if (!this.runtime.isReviewMode) this.runtime.score++;
+                    this.saveQuizProgress();
+                    setTimeout(() => this.nextQuestion(), 300);
+                } else {
+                    btn.classList.add('answer-wrong');
+                    allBtns.forEach(b => {
+                        const textContent = b.innerText.substring(2).trim(); 
+                        if (textContent === this.runtime.questions[qIdx].correct.trim()) {
+                            b.classList.add('answer-correct');
+                        }
+                    });
+
+                    if (!this.runtime.wrongIndices.includes(qIdx)) {
+                        this.runtime.wrongIndices.push(qIdx);
+                    }
+                    this.saveQuizProgress();
+                    this.ui.actionArea.classList.remove('opacity-0');
+                    this.ui.actionArea.style.pointerEvents = 'auto';
+                }
+            },
+
+            nextQuestion() {
+                this.runtime.currentIndex++;
+                this.saveQuizProgress();
+
+                if (this.runtime.currentIndex < this.runtime.playQueue.length) {
+                    this.renderQuestion();
+                } else {
+                    if (this.runtime.wrongIndices.length > 0 && !this.runtime.isReviewMode) {
+                        this.runtime.playQueue = [...this.runtime.wrongIndices];
+                        this.runtime.currentIndex = 0;
+                        this.runtime.isReviewMode = true; 
+                        this.runtime.wrongIndices = []; 
+                        this.saveQuizProgress();
+                        this.renderQuestion();
+                    } 
+                    else if (this.runtime.isReviewMode && this.runtime.wrongIndices.length > 0) {
+                        this.runtime.playQueue = [...this.runtime.wrongIndices];
+                        this.runtime.currentIndex = 0;
+                        this.runtime.wrongIndices = [];
+                        this.saveQuizProgress();
+                        this.renderQuestion();
+                    } 
+                    else {
+                        this.saveQuizProgress();
+                        this.showResult();
+                    }
+                }
+            },
+
+            showResult() {
+                this.switchScreen('result');
+                document.getElementById('resRight').innerText = this.runtime.score;
+                document.getElementById('resTotal').innerText = this.runtime.questions.length;
+                if (this.runtime.score === this.runtime.questions.length) {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                }
+            },
+
+            restartQuiz() {
+                const folder = this.library.find(f => f.id === this.currentFolderId);
+                const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
+                quiz.progress = null; 
+                this.saveLibrary();
+                this.startQuiz(this.currentQuizId);
+            },
+
+            playGoogleAudio(text, element) {
+                const player = this.ui.globalAudio;
+                document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
+                
+                const lowerText = text.trim().toLowerCase();
+                const encodedText = encodeURIComponent(lowerText);
+                
+                const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodedText}`;
+                player.src = url;
+                if(element) element.classList.add('playing');
+                player.play().catch(e => {
+                    console.error(e);
+                    if(element) element.classList.remove('playing');
+                });
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
