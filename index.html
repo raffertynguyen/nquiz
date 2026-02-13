@@ -41,6 +41,7 @@
             transition: background-color 0.3s ease, color 0.3s ease;
             min-height: 100vh;
             overscroll-behavior-y: contain; 
+            user-select: none;
         }
 
         /* Glass Panel */
@@ -50,6 +51,8 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             border-radius: 20px;
+            width: 100%; max-width: 1200px; margin: 0 auto;
+            min-height: 90vh; display: flex; flex-direction: column;
         }
 
         body.dark-mode .glass-panel {
@@ -60,40 +63,23 @@
         /* Typography */
         #questionText {
             font-weight: 500; 
-            line-height: 1.5;
+            line-height: 1.6;
             color: var(--text-main) !important;
+            user-select: text; font-size: 1.25rem;
         }
         
         /* Highlight Keyword */
         .highlight-keyword {
-            font-weight: 800;
-            cursor: pointer;
-            padding: 2px 4px;
-            border-bottom: 2px dashed #d97706;
-            color: #d97706;
-            border-radius: 4px;
+            font-weight: 800; cursor: pointer; padding: 2px 4px; border-bottom: 2px dashed #d97706; color: #d97706; border-radius: 4px;
         }
-        .highlight-keyword::after {
-            content: '\f028'; 
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            font-size: 0.75em;
-            margin-left: 4px;
-            vertical-align: middle;
-            opacity: 0.6;
-        }
-        .highlight-keyword.playing {
-            color: #ea580c !important; 
-            border-bottom-style: solid;
-            background-color: rgba(234, 88, 12, 0.15);
-        }
+        .highlight-keyword::after { content: '\f028'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 0.75em; margin-left: 4px; vertical-align: middle; opacity: 0.6; }
+        .highlight-keyword.playing { color: #ea580c !important; border-bottom-style: solid; background-color: rgba(234, 88, 12, 0.15); }
         body.dark-mode .highlight-keyword { color: #fbbf24; border-bottom-color: #fbbf24; }
 
         /* Custom Modal */
         #customModal {
             position: fixed; inset: 0; z-index: 9999;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
             display: flex; align-items: center; justify-content: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
@@ -110,37 +96,25 @@
 
         /* Restore FAB */
         .restore-fab {
-            position: fixed; bottom: 24px; right: 24px;
-            width: 56px; height: 56px; border-radius: 50%;
+            position: fixed; bottom: 80px; right: 24px;
+            width: 50px; height: 50px; border-radius: 50%;
             background: #2563eb; color: white;
             box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; cursor: pointer; z-index: 100;
+            font-size: 20px; cursor: pointer; z-index: 90;
             transition: transform 0.2s, background 0.2s;
             animation: pulse 2s infinite;
         }
         .restore-fab:active { transform: scale(0.95); background: #1d4ed8; }
         .restore-fab.hidden { display: none; }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); } }
 
         /* Help FAB */
         .help-fab {
             position: fixed; bottom: 24px; left: 24px;
-            width: 40px; height: 40px; border-radius: 50%;
-            background: #f59e0b;
-            color: white;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; cursor: pointer; z-index: 100;
-            transition: transform 0.2s;
-            text-decoration: none;
+            width: 40px; height: 40px; border-radius: 50%; background: #f59e0b; color: white;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; z-index: 100; transition: transform 0.2s; text-decoration: none;
         }
-        .help-fab:active { transform: scale(0.95); }
 
         /* Toast */
         #toast {
@@ -153,106 +127,43 @@
         }
         #toast.show { opacity: 1; }
 
-        /* --- CARDS & LIST ITEMS FIX --- */
+        /* --- UI ELEMENTS (Fix Dark Mode) --- */
         .list-item-card {
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb;
-            transition: all 0.2s;
+            background-color: #ffffff; border: 1px solid #e5e7eb; transition: all 0.2s;
         }
         body.dark-mode .list-item-card {
-            background-color: #111827 !important; /* Xám đen */
-            border-color: #374151 !important;
-            color: #ffffff !important;
+            background-color: #111827 !important; border-color: #374151 !important; color: #ffffff !important;
         }
-        body.dark-mode .list-item-card:active {
-            background-color: #1f2937 !important;
-        }
-        body.dark-mode .list-item-card h3, 
-        body.dark-mode .list-item-card h4 {
-            color: #ffffff !important;
-        }
-        body.dark-mode .list-item-card p {
-            color: #9ca3af !important;
-        }
+        body.dark-mode .list-item-card:hover { background-color: #1f2937 !important; }
+        body.dark-mode .list-item-card h3, body.dark-mode .list-item-card h4 { color: #ffffff !important; }
+        body.dark-mode .list-item-card p { color: #9ca3af !important; }
 
-        /* --- ANSWER CARD FIX --- */
-        .answer-card {
-            background-color: #ffffff; color: #1f2937;
-            border: 1px solid #e5e7eb; position: relative;
-            touch-action: manipulation; 
-        }
-        body.dark-mode .answer-card { 
-            background-color: #111827; 
-            color: #ffffff; 
-            border-color: #374151; 
-        }
-        body.dark-mode .answer-card:hover {
-            background-color: #1f2937;
-            border-color: #4b5563;
-        }
-
+        .answer-card { background-color: #ffffff; color: #1f2937; border: 1px solid #e5e7eb; position: relative; touch-action: manipulation; }
+        body.dark-mode .answer-card { background-color: #111827; color: #ffffff; border-color: #374151; }
+        body.dark-mode .answer-card:hover { background-color: #1f2937; border-color: #4b5563; }
+        
         .answer-correct { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #064e3b !important; }
         body.dark-mode .answer-correct { background-color: #064e3b !important; color: #d1fae5 !important; border-color: #059669 !important; }
-        
         .answer-wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
         body.dark-mode .answer-wrong { background-color: #7f1d1d !important; color: #fee2e2 !important; border-color: #dc2626 !important; }
 
-        /* --- SỐ THỨ TỰ 1,2,3,4 FIX --- */
-        .key-badge {
-            background: #f3f4f6; 
-            color: #374151;
-            padding: 2px 8px; border-radius: 6px; font-size: 0.85em; margin-right: 12px; font-weight: 800; min-width: 28px; text-align: center;
-            border: 1px solid #e5e7eb;
-        }
-        body.dark-mode .key-badge { 
-            background: #374151 !important;
-            color: #fbbf24 !important;
-            border-color: #4b5563 !important;
-        }
-
-        /* Buttons */
-        .btn-gold {
-            background: linear-gradient(135deg, #B8860B 0%, #D2691E 100%);
-            color: white; box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
-        }
+        .key-badge { background: #f3f4f6; color: #374151; padding: 2px 8px; border-radius: 6px; font-weight: 800; min-width: 28px; text-align: center; border: 1px solid #e5e7eb; margin-right: 12px; }
+        body.dark-mode .key-badge { background: #374151 !important; color: #fbbf24 !important; border-color: #4b5563 !important; }
+        
+        .btn-gold { background: linear-gradient(135deg, #B8860B 0%, #D2691E 100%); color: white; box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3); }
         .btn-gold:active { transform: scale(0.98); }
-
-        /* Login Inputs */
-        .auth-input {
-            width: 100%; padding: 12px 16px; margin-bottom: 12px;
-            border-radius: 12px; border: 1px solid #e5e7eb;
-            background-color: #f9fafb; font-size: 14px;
-            transition: all 0.2s;
-        }
-        .auth-input:focus {
-            outline: none; border-color: #B8860B; box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.2);
-        }
-        body.dark-mode .auth-input {
-            background-color: #1f2937; border-color: #374151; color: white;
-        }
-
-        /* User Dropdown */
-        .user-dropdown {
-            position: absolute; right: 0; top: 120%;
-            background: white; border-radius: 12px;
-            width: 200px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            border: 1px solid #f3f4f6;
-            z-index: 50;
-            transform-origin: top right;
-            transition: all 0.2s ease-out;
-            opacity: 0; pointer-events: none; transform: scale(0.95);
-        }
-        .user-dropdown.active {
-            opacity: 1; pointer-events: auto; transform: scale(1);
-        }
-        body.dark-mode .user-dropdown {
-            background: #1f2937; border-color: #374151; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
-        }
 
         .hidden-el { display: none !important; }
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Auth UI */
+        .auth-input { width: 100%; padding: 12px 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #e5e7eb; background-color: #f9fafb; transition: all 0.2s; }
+        body.dark-mode .auth-input { background-color: #1f2937; border-color: #374151; color: white; }
+        
+        .user-dropdown { position: absolute; right: 0; top: 120%; background: white; border-radius: 12px; width: 200px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #f3f4f6; z-index: 50; transition: all 0.2s; opacity: 0; pointer-events: none; transform: scale(0.95); transform-origin: top right; }
+        .user-dropdown.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+        body.dark-mode .user-dropdown { background: #1f2937; border-color: #374151; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center justify-center">
@@ -287,7 +198,7 @@
                 <input type="email" id="emailInput" placeholder="Email" class="auth-input">
                 <input type="password" id="passwordInput" placeholder="Mật khẩu" class="auth-input">
                 
-                <button id="emailAuthBtn" onclick="app.handleEmailAuth()" class="w-full py-3 rounded-xl bg-yellow-600 text-white font-bold shadow-lg active:bg-yellow-700 transition mb-4">
+                <button id="emailAuthBtn" onclick="app.handleEmailAuth()" class="w-full py-3 rounded-xl bg-yellow-600 text-white font-bold shadow-lg active:bg-yellow-700 transition mb-4 flex items-center justify-center">
                     Đăng nhập
                 </button>
                 
@@ -304,9 +215,9 @@
                 <div class="relative flex justify-center text-xs uppercase"><span class="px-2 bg-white dark:bg-black text-gray-400">Hoặc</span></div>
             </div>
             
-            <button onclick="app.loginGoogle()" class="w-full py-3 px-4 rounded-xl bg-white border border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition">
+            <button id="googleAuthBtn" onclick="app.loginGoogle()" class="w-full py-3 px-4 rounded-xl bg-white border border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
-                Tiếp tục với Google
+                <span>Tiếp tục với Google</span>
             </button>
             <p id="loginError" class="text-red-500 text-xs mt-4 hidden bg-red-50 p-2 rounded border border-red-100"></p>
         </div>
@@ -319,12 +230,12 @@
             <input type="text" id="modalInput" placeholder="Nhập tên sách..." class="w-full p-3 border rounded-lg mb-4 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500">
             <div class="flex justify-end gap-3">
                 <button onclick="app.closeModal()" class="px-4 py-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">Hủy</button>
-                <button onclick="app.confirmCreateFolder()" class="px-4 py-2 rounded-lg bg-yellow-600 text-white font-bold shadow">Tạo</button>
+                <button id="modalActionBtn" onclick="app.confirmCreateFolder()" class="px-4 py-2 rounded-lg bg-yellow-600 text-white font-bold shadow">Tạo</button>
             </div>
         </div>
     </div>
 
-    <main class="w-full max-w-4xl glass-panel min-h-[85vh] flex flex-col p-5 relative overflow-hidden">
+    <main class="glass-panel p-6 relative overflow-hidden">
         
         <!-- HEADER -->
         <header class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
@@ -366,7 +277,7 @@
         </header>
 
         <!-- SCREEN 1: LIBRARY -->
-        <section id="libraryScreen" class="flex-1 fade-in">
+        <section id="libraryScreen" class="flex-1 fade-in flex flex-col h-full">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-bold dark:text-white uppercase tracking-wide">KỆ SÁCH</h2>
                 <button onclick="app.openCreateModal()" class="w-10 h-10 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center active:bg-green-700">
@@ -379,7 +290,7 @@
                 <p class="mt-2 text-sm">Đang tải dữ liệu...</p>
             </div>
 
-            <div id="foldersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-20">
+            <div id="foldersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-20 overflow-y-auto">
                 <!-- Folders rendered here -->
             </div>
             
@@ -390,7 +301,7 @@
         </section>
 
         <!-- SCREEN 2: FOLDER DETAIL -->
-        <section id="folderScreen" class="hidden-el flex-1 fade-in">
+        <section id="folderScreen" class="hidden-el flex-1 fade-in flex flex-col h-full">
             <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-3">
                 <h2 id="currentFolderName" class="text-xl font-bold text-yellow-700 dark:text-yellow-400 break-words leading-tight">
                     <!-- Book Name -->
@@ -403,7 +314,7 @@
                 </div>
             </div>
 
-            <div id="quizzesContainer" class="space-y-3 pb-20">
+            <div id="quizzesContainer" class="space-y-3 pb-20 overflow-y-auto">
                 <!-- Quizzes list rendered here -->
             </div>
             
@@ -425,25 +336,16 @@
         </section>
 
         <!-- SCREEN 3: QUIZ -->
-        <section id="quizScreen" class="hidden-el flex-1 flex flex-col fade-in">
+        <section id="quizScreen" class="hidden-el flex-1 flex flex-col fade-in h-full">
             <div class="flex flex-col gap-2 mb-4">
                 <div class="flex justify-between items-center">
-                    <span id="fileNameDisplay" class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 rounded text-xs font-bold border border-yellow-200 dark:border-yellow-700 max-w-[70%] truncate">
+                    <span id="fileNameDisplay" class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 rounded text-xs font-bold border border-yellow-200 dark:border-yellow-700 max-w-[60%] truncate">
                         FILE NAME
                     </span>
-                    <div class="flex items-center gap-2">
-                        <!-- Auto-Play Toggle -->
-                        <button id="autoPlayToggle" class="text-yellow-500 hover:text-yellow-600 transition px-2" title="Tự động phát">
-                            <i class="fas fa-volume-up"></i>
-                        </button>
-                        <!-- Reset Button -->
-                        <button id="resetQuizBtn" onclick="app.resetCurrentQuiz()" class="text-gray-400 hover:text-red-500 transition px-2" title="Làm lại từ đầu">
-                            <i class="fas fa-redo"></i>
-                        </button>
-                        <!-- Shuffle Button -->
-                        <button id="shuffleToggle" class="text-yellow-500 hover:text-yellow-600 transition px-2" title="Xáo trộn">
-                            <i class="fas fa-random"></i>
-                        </button>
+                    <div class="flex items-center gap-1">
+                        <button id="autoPlayToggle" class="text-yellow-500 hover:text-yellow-600 transition px-2"><i class="fas fa-volume-up"></i></button>
+                        <button onclick="app.resetCurrentQuiz()" class="text-gray-400 hover:text-red-500 transition px-2"><i class="fas fa-redo"></i></button>
+                        <button id="shuffleToggle" class="text-yellow-500 hover:text-yellow-600 transition px-2"><i class="fas fa-random"></i></button>
                     </div>
                 </div>
                 
@@ -457,9 +359,9 @@
                 <div id="progressBar" class="bg-yellow-500 h-full transition-all duration-300" style="width: 0%"></div>
             </div>
 
-            <div class="flex-1 flex flex-col justify-center w-full">
-                <h2 id="questionText" class="text-lg md:text-xl mb-6 text-center transition-colors"></h2>
-                <div id="answersContainer" class="grid grid-cols-1 gap-3 pb-24"></div>
+            <div class="flex-1 flex flex-col justify-center w-full overflow-y-auto pb-24">
+                <h2 id="questionText" class="text-lg md:text-2xl mb-6 text-center transition-colors"></h2>
+                <div id="answersContainer" class="grid grid-cols-1 gap-3"></div>
             </div>
 
             <div id="actionArea" class="fixed bottom-6 left-0 right-0 flex justify-center opacity-0 transition-opacity pointer-events-none z-50 px-4">
@@ -470,7 +372,7 @@
         </section>
 
         <!-- SCREEN 4: RESULT -->
-        <section id="resultScreen" class="hidden-el flex-1 flex flex-col items-center justify-center fade-in text-center">
+        <section id="resultScreen" class="hidden-el flex-1 flex flex-col items-center justify-center fade-in text-center h-full">
             <i class="fas fa-award text-6xl text-yellow-500 mb-4 animate-bounce"></i>
             <h2 class="text-3xl font-bold mb-2 dark:text-white">Hoàn thành!</h2>
             <div class="grid grid-cols-2 gap-4 my-8 w-full max-w-sm">
@@ -496,7 +398,7 @@
     </main>
 
     <script>
-        // --- 1. FIREBASE CONFIGURATION (API CHÍNH CHỦ) ---
+        // --- 1. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyAPw8m0-45L79uIh_y8MaAcf9JyM9vGDKk",
             authDomain: "nquiz-data.firebaseapp.com",
@@ -516,16 +418,7 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
-            
-            // --- FIX: Bật chế độ Offline Persistence ---
-            db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-                if (err.code == 'failed-precondition') {
-                    console.warn('Lỗi: Đang mở nhiều tab nQUIZ cùng lúc. Chỉ tab đầu tiên mới có thể lưu offline.');
-                } else if (err.code == 'unimplemented') {
-                    console.warn('Trình duyệt không hỗ trợ lưu offline.');
-                }
-            });
-
+            db.enablePersistence({ synchronizeTabs: true }).catch(err => console.log(err));
             auth = firebase.auth();
             provider = new firebase.auth.GoogleAuthProvider();
         } catch (error) {
@@ -542,281 +435,135 @@
             runtime: {
                 questions: [], playQueue: [], wrongIndices: [], 
                 currentIndex: 0, score: 0, isShuffled: true, isReviewMode: false,
-                isAutoPlay: true // DEFAULT AUTO PLAY ON
+                isAutoPlay: true
             },
 
-            ui: {
-                screens: {
-                    library: document.getElementById('libraryScreen'),
-                    folder: document.getElementById('folderScreen'),
-                    quiz: document.getElementById('quizScreen'),
-                    result: document.getElementById('resultScreen')
-                },
-                foldersContainer: document.getElementById('foldersContainer'),
-                quizzesContainer: document.getElementById('quizzesContainer'),
-                homeBtn: document.getElementById('homeBtn'),
-                restoreBtn: document.getElementById('restoreBtn'),
-                input: document.getElementById('excelInput'),
-                globalAudio: document.getElementById('globalAudio'),
-                qText: document.getElementById('questionText'),
-                ansContainer: document.getElementById('answersContainer'),
-                progress: document.getElementById('progressBar'),
-                counter: document.getElementById('questionCounter'),
-                nextBtn: document.getElementById('nextBtn'),
-                actionArea: document.getElementById('actionArea'),
-                statusBadge: document.getElementById('statusBadge'),
-                fileNameDisplay: document.getElementById('fileNameDisplay'),
-                modal: document.getElementById('customModal'),
-                modalInput: document.getElementById('modalInput'),
-                loginScreen: document.getElementById('loginScreen'),
-                loadingIndicator: document.getElementById('loadingIndicator'),
-                emailInput: document.getElementById('emailInput'),
-                passwordInput: document.getElementById('passwordInput'),
-                emailAuthBtn: document.getElementById('emailAuthBtn'),
-                loginError: document.getElementById('loginError'),
-                toast: document.getElementById('toast'),
-                shuffleToggle: document.getElementById('shuffleToggle'),
-                autoPlayToggle: document.getElementById('autoPlayToggle')
-            },
+            ui: {},
 
             init() {
+                this.mapUI();
                 const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 if(isDark) document.body.classList.add('dark-mode');
                 document.getElementById('themeToggle').addEventListener('click', () => {
                     document.body.classList.toggle('dark-mode');
                 });
 
-                this.ui.input.addEventListener('change', (e) => this.handleFile(e));
-                this.ui.nextBtn.addEventListener('click', () => this.nextQuestion());
-                this.ui.restoreBtn.addEventListener('click', () => this.restoreCurrentProgress());
-                this.ui.modalInput.addEventListener('keydown', (e) => {
-                    if(e.key === 'Enter') this.confirmCreateFolder();
-                });
+                this.setupEvents();
                 
-                // Shuffle Button Logic
-                this.ui.shuffleToggle.addEventListener('click', (e) => {
-                    this.runtime.isShuffled = !this.runtime.isShuffled;
-                    this.updateShuffleUI();
-                });
-
-                // Auto Play Toggle Logic
-                this.ui.autoPlayToggle.addEventListener('click', (e) => {
-                    this.runtime.isAutoPlay = !this.runtime.isAutoPlay;
-                    this.updateAutoPlayUI();
-                });
-
-                this.ui.qText.addEventListener('click', (e) => {
-                    const target = e.target.closest('.highlight-keyword');
-                    if (target) this.playGoogleAudio(target.innerText, target);
-                });
-                
-                // Note: onended listener moved to playGoogleAudio's logic for sequential play
-
-                document.addEventListener('keydown', (e) => {
-                    if (this.ui.screens.quiz.classList.contains('hidden-el')) return;
-                    if (['1','2','3','4'].includes(e.key)) {
-                        const idx = parseInt(e.key) - 1;
-                        const buttons = this.ui.ansContainer.querySelectorAll('button');
-                        if (buttons[idx] && !buttons[idx].disabled) buttons[idx].click();
-                    }
-                    if (e.key === 'Enter' && !this.ui.actionArea.classList.contains('opacity-0')) {
-                        this.nextQuestion();
-                    }
-                });
-
-                // Dropdown
-                const profileTrigger = document.getElementById('userProfileTrigger');
-                const dropdown = document.getElementById('userDropdown');
-                profileTrigger.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('active');
-                });
-                document.addEventListener('click', (e) => {
-                    if (!profileTrigger.contains(e.target) && !dropdown.contains(e.target)) {
-                        dropdown.classList.remove('active');
-                    }
-                });
-
-                auth.onAuthStateChanged((user) => {
-                    if (user) {
+                auth.onAuthStateChanged(user => {
+                    if(user) {
                         currentUser = user;
-                        this.ui.loginScreen.classList.add('hidden-el');
+                        if(this.ui.loginScreen) this.ui.loginScreen.classList.add('hidden-el');
+                        
                         const displayName = user.displayName || user.email.split('@')[0];
-                        document.getElementById('userName').innerText = displayName;
-                        document.getElementById('dropdownEmail').innerText = user.email;
+                        if(document.getElementById('userName')) document.getElementById('userName').innerText = displayName;
+                        if(document.getElementById('dropdownEmail')) document.getElementById('dropdownEmail').innerText = user.email;
                         
                         if (user.photoURL) {
-                            document.getElementById('userAvatar').src = user.photoURL;
-                            document.getElementById('userAvatar').classList.remove('hidden');
-                            document.getElementById('defaultAvatar').classList.add('hidden');
+                            if(document.getElementById('userAvatar')) {
+                                document.getElementById('userAvatar').src = user.photoURL;
+                                document.getElementById('userAvatar').classList.remove('hidden');
+                            }
+                            if(document.getElementById('defaultAvatar')) document.getElementById('defaultAvatar').classList.add('hidden');
                         } else {
-                            document.getElementById('userAvatar').classList.add('hidden');
-                            document.getElementById('defaultAvatar').classList.remove('hidden');
+                            if(document.getElementById('userAvatar')) document.getElementById('userAvatar').classList.add('hidden');
+                            if(document.getElementById('defaultAvatar')) document.getElementById('defaultAvatar').classList.remove('hidden');
                         }
                         this.loadLibraryFromCloud();
                         this.setupHistory();
                     } else {
-                        this.ui.loginScreen.classList.remove('hidden-el');
+                        if(this.ui.loginScreen) this.ui.loginScreen.classList.remove('hidden-el');
                     }
                 });
             },
 
-            // --- UI HELPERS ---
-            updateShuffleUI() {
-                if(this.runtime.isShuffled) {
-                    this.ui.shuffleToggle.classList.remove('text-gray-400');
-                    this.ui.shuffleToggle.classList.add('text-yellow-500');
-                } else {
-                    this.ui.shuffleToggle.classList.remove('text-yellow-500');
-                    this.ui.shuffleToggle.classList.add('text-gray-400');
-                }
-            },
-
-            updateAutoPlayUI() {
-                if(this.runtime.isAutoPlay) {
-                    this.ui.autoPlayToggle.classList.remove('text-gray-400');
-                    this.ui.autoPlayToggle.classList.add('text-yellow-500');
-                    this.ui.autoPlayToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
-                } else {
-                    this.ui.autoPlayToggle.classList.remove('text-yellow-500');
-                    this.ui.autoPlayToggle.classList.add('text-gray-400');
-                    this.ui.autoPlayToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
-                }
-            },
-
-            // --- HISTORY NAVIGATION ---
-            setupHistory() {
-                history.replaceState({ screen: 'library' }, '', '');
-                history.pushState({ screen: 'library' }, '', '');
-
-                window.onpopstate = (event) => {
-                    const state = event.state;
-                    if (!state) {
-                        if (this.exitAttempt) {
-                            history.back();
-                        } else {
-                            this.showToast();
-                            history.pushState({ screen: 'library' }, '', '');
-                            this.exitAttempt = true;
-                            setTimeout(() => { this.exitAttempt = false; }, 2000);
-                        }
-                        return;
-                    }
-                    if (state.screen === 'folder') {
-                        this.currentFolderId = state.folderId;
-                        this.renderFolder();
-                        this.switchScreen('folder', false);
-                    } else if (state.screen === 'quiz') {
-                        this.currentQuizId = state.quizId;
-                        this.openFolder(this.currentFolderId, false);
-                    } else if (state.screen === 'library') {
-                        this.goHome(false);
-                    }
+            mapUI() {
+                this.ui = {};
+                this.ui.screens = {
+                    library: document.getElementById('libraryScreen'),
+                    folder: document.getElementById('folderScreen'),
+                    quiz: document.getElementById('quizScreen'),
+                    result: document.getElementById('resultScreen'),
+                    login: document.getElementById('loginScreen')
                 };
+
+                const ids = ['loadingIndicator', 'foldersContainer', 'emptyLibraryMsg', 'emptyFolderMsg', 'currentFolderName', 'quizzesContainer',
+                           'homeBtn', 'restoreBtn', 'questionText', 'ansContainer', 'progressBar', 'counter', 'nextBtn', 'actionArea', 
+                           'statusBadge', 'fileNameDisplay', 
+                           'emailInput', 'passwordInput', 'emailAuthBtn', 'googleAuthBtn', 'loginError', 'authSwitchText', 'authSwitchBtn', 'customModal', 'modalInput', 'shuffleToggle', 'autoPlayToggle', 'toast', 'excelInput',
+                           'userProfileTrigger', 'userDropdown', 'modalActionBtn', 'loginScreen'];
+                
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) this.ui[id] = el;
+                });
+                
+                // Manual mapping for compatibility
+                this.ui.qText = this.ui.questionText;
+                this.ui.globalAudio = document.getElementById('globalAudio');
             },
 
-            showToast() {
-                this.ui.toast.classList.add('show');
-                setTimeout(() => {
-                    this.ui.toast.classList.remove('show');
-                }, 2000);
-            },
+            setupEvents() {
+                if(this.ui.excelInput) this.ui.excelInput.addEventListener('change', (e) => this.handleFile(e));
+                if(this.ui.customModal) this.ui.customModal.addEventListener('keydown', (e) => { if(e.key==='Enter') this.confirmCreateFolder(); });
+                
+                if(this.ui.nextBtn) this.ui.nextBtn.addEventListener('click', () => this.nextQuestion());
+                if(this.ui.restoreBtn) this.ui.restoreBtn.addEventListener('click', () => this.restoreCurrentProgress());
+                if(this.ui.shuffleToggle) this.ui.shuffleToggle.addEventListener('click', () => { this.runtime.isShuffled = !this.runtime.isShuffled; this.updateShuffleUI(); });
+                if(this.ui.autoPlayToggle) this.ui.autoPlayToggle.addEventListener('click', () => { this.runtime.isAutoPlay = !this.runtime.isAutoPlay; this.updateAutoPlayUI(); });
+                
+                if(this.ui.qText) this.ui.qText.addEventListener('click', (e) => { const t = e.target.closest('.highlight-keyword'); if(t) this.playGoogleAudio(t.innerText, t); });
+                if(this.ui.globalAudio) this.ui.globalAudio.addEventListener('ended', () => document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing')));
+                
+                document.addEventListener('keydown', (e) => this.handleGlobalKey(e));
 
-            // --- AUTH ---
-            toggleAuthMode() {
-                this.isRegisterMode = !this.isRegisterMode;
-                const text = document.getElementById('authSwitchText');
-                const btn = document.getElementById('authSwitchBtn');
-                if (this.isRegisterMode) {
-                    this.ui.emailAuthBtn.innerText = "Đăng ký";
-                    text.innerText = "Đã có tài khoản?";
-                    btn.innerText = "Đăng nhập ngay";
-                } else {
-                    this.ui.emailAuthBtn.innerText = "Đăng nhập";
-                    text.innerText = "Chưa có tài khoản?";
-                    btn.innerText = "Đăng ký ngay";
-                }
-                this.ui.loginError.classList.add('hidden');
-            },
-
-            handleEmailAuth() {
-                const email = this.ui.emailInput.value;
-                const password = this.ui.passwordInput.value;
-                if (!email || !password) {
-                    this.showLoginError("Vui lòng nhập đầy đủ Email và Mật khẩu.");
-                    return;
-                }
-                if (this.isRegisterMode) {
-                    auth.createUserWithEmailAndPassword(email, password)
-                        .then((userCredential) => {
-                            const defaultName = email.split('@')[0];
-                            userCredential.user.updateProfile({ displayName: defaultName });
-                        })
-                        .catch((error) => this.handleAuthError(error));
-                } else {
-                    auth.signInWithEmailAndPassword(email, password)
-                        .catch((error) => this.handleAuthError(error));
+                const pt = document.getElementById('userProfileTrigger'), dd = document.getElementById('userDropdown');
+                if(pt && dd) {
+                    pt.addEventListener('click', (e) => { e.stopPropagation(); dd.classList.toggle('active'); });
+                    document.addEventListener('click', (e) => { if(!pt.contains(e.target) && !dd.contains(e.target)) dd.classList.remove('active'); });
                 }
             },
 
-            loginGoogle() { auth.signInWithPopup(provider).catch((error) => this.handleAuthError(error)); },
-
-            handleAuthError(error) {
-                let msg = error.message;
-                if (error.code === 'auth/wrong-password') msg = "Sai mật khẩu.";
-                else if (error.code === 'auth/user-not-found') msg = "Tài khoản không tồn tại.";
-                else if (error.code === 'auth/email-already-in-use') msg = "Email này đã được đăng ký.";
-                else if (error.code === 'auth/weak-password') msg = "Mật khẩu quá yếu (cần ít nhất 6 ký tự).";
-                else if (error.code === 'auth/invalid-email') msg = "Email không hợp lệ.";
-                this.showLoginError(msg);
+            // ... (Rest of functions: migrateData, loadLibraryFromCloud, saveLibrary, handleFile, etc. keep same as before) ...
+            
+            // --- Helper to fix the missing parts of code ---
+            migrateData(oldData) {
+                let newLib = [];
+                if (Array.isArray(oldData) && oldData.length > 0 && oldData[0].type) {
+                    const folders = oldData.filter(i => i.type === 'folder').map(f => ({
+                        id: f.id, name: f.name, quizzes: []
+                    }));
+                    const quizzes = oldData.filter(i => i.type === 'quiz');
+                    quizzes.forEach(q => {
+                        const folder = folders.find(f => f.id === q.parentId);
+                        if(folder) folder.quizzes.push({
+                            id: q.id, name: q.name, questions: q.questions, progress: q.progress
+                        });
+                    });
+                    return folders;
+                }
+                return oldData;
             },
 
-            showLoginError(msg) {
-                this.ui.loginError.innerText = msg;
-                this.ui.loginError.classList.remove('hidden');
-            },
-
-            logout() { auth.signOut().then(() => { location.reload(); }); },
-
-            // --- CLOUD DATA ---
             async loadLibraryFromCloud(retry = 3) {
                 this.ui.loadingIndicator.classList.remove('hidden');
                 try {
                     const docRef = db.collection('users').doc(currentUser.uid);
-                    
-                    // Thêm timeout cho get() request
                     const doc = await docRef.get();
-                    
                     if (doc.exists) {
-                        let data = doc.data().library || [];
-                        if(Array.isArray(data) && data.length > 0 && data[0].type) {
-                             const folders = data.filter(i => i.type === 'folder').map(f => ({
-                                 id: f.id, name: f.name, quizzes: []
-                             }));
-                             const quizzes = data.filter(i => i.type === 'quiz');
-                             quizzes.forEach(q => {
-                                 const f = folders.find(fd => fd.id === q.parentId);
-                                 if(f) f.quizzes.push({ id: q.id, name: q.name, questions: q.questions, progress: q.progress });
-                             });
-                             this.library = folders;
-                        } else {
-                            this.library = data;
-                        }
+                        const raw = doc.data().library || [];
+                        this.library = this.migrateData(raw);
                     } else {
                         this.library = [];
                         await docRef.set({ library: [] });
                     }
-                } catch (error) {
-                    console.error("Error getting document:", error);
-                    // RETRY LOGIC (Nếu lỗi offline thì thử lại)
-                    if (retry > 0 && error.message.includes("offline")) {
-                         console.log(`Retrying... (${retry} left)`);
-                         setTimeout(() => this.loadLibraryFromCloud(retry - 1), 1000);
-                         return; // Dừng hàm này, chờ đợt retry
+                } catch (e) { 
+                    if (retry > 0 && e.message.includes("offline")) {
+                        setTimeout(() => this.loadLibraryFromCloud(retry - 1), 1000);
+                        return;
                     }
-                    alert("Lỗi tải dữ liệu: " + error.message + "\n(Vui lòng kiểm tra kết nối mạng)");
+                    alert("Lỗi tải: " + e.message); 
                 } finally {
-                    // Chỉ ẩn loading khi đã hết lượt retry hoặc thành công
                     if (retry === 0 || this.library.length >= 0) {
                         this.ui.loadingIndicator.classList.add('hidden');
                         this.checkGlobalRestore();
@@ -826,80 +573,61 @@
             },
 
             async saveLibrary() {
-                if (!currentUser) return;
-                try {
-                    await db.collection('users').doc(currentUser.uid).set({ library: this.library });
-                } catch (error) {
-                    console.error("Error writing document: ", error);
-                }
+                if(!currentUser) return;
+                try { await db.collection('users').doc(currentUser.uid).set({ library: this.library }); } catch(e){}
             },
 
-            // --- MULTI-FILE IMPORT ---
             handleFile(e) {
                 const files = e.target.files;
                 if (!files || files.length === 0) return;
-
                 this.ui.loadingIndicator.classList.remove('hidden');
-                this.ui.loadingIndicator.querySelector('p').innerText = `Đang xử lý ${files.length} file...`;
-
-                const promises = Array.from(files).map(file => {
-                    return new Promise((resolve) => {
-                        const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-                        const reader = new FileReader();
-                        reader.onload = (evt) => {
-                            const data = new Uint8Array(evt.target.result);
-                            const workbook = XLSX.read(data, { type: 'array' });
-                            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                            const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                            resolve({ name: rawName, rows: json });
-                        };
-                        reader.readAsArrayBuffer(file);
-                    });
-                });
+                const promises = Array.from(files).map(file => new Promise(resolve => {
+                    const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        const wb = XLSX.read(new Uint8Array(evt.target.result), {type:'array'});
+                        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
+                        resolve({name: rawName, rows: json});
+                    };
+                    reader.readAsArrayBuffer(file);
+                }));
 
                 Promise.all(promises).then(results => {
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     let count = 0;
-                    
                     results.forEach(res => {
-                        const questions = [];
+                        const qs = [];
                         res.rows.forEach(r => {
                             if (r[0] && r[1]) {
-                                questions.push({
+                                qs.push({
                                     q: String(r[0]),
                                     correct: String(r[1]),
                                     wrong: [r[2], r[3], r[4]].filter(x => x != null && x !== "").map(String)
                                 });
                             }
                         });
-
-                        if (questions.length > 0) {
+                        if (qs.length > 0) {
                             folder.quizzes.push({
-                                id: Date.now() + Math.random(), 
+                                id: String(Date.now() + Math.random()), 
                                 name: res.name,
-                                questions: questions,
+                                questions: qs,
                                 progress: null
                             });
                             count++;
                         }
                     });
-
                     this.saveLibrary(); 
                     this.renderFolder();
-                    
                     this.ui.input.value = '';
                     this.ui.loadingIndicator.classList.add('hidden');
-                    this.ui.loadingIndicator.querySelector('p').innerText = "Đang tải dữ liệu..."; 
-                    
-                    if(count > 0) alert(`Đã thêm thành công ${count} đề thi!`);
-                    else alert("Không tìm thấy dữ liệu hợp lệ trong các file đã chọn.");
+                    if(count > 0) alert(`Đã thêm ${count} đề!`);
                 });
             },
 
-            // --- APP LOGIC ---
             switchScreen(screenName, pushHistory = true) {
-                Object.values(this.ui.screens).forEach(el => el.classList.add('hidden-el'));
-                this.ui.screens[screenName].classList.remove('hidden-el');
+                if(!this.ui.screens) return;
+                Object.values(this.ui.screens).forEach(el => { if(el) el.classList.add('hidden-el'); });
+                if(this.ui.screens[screenName]) this.ui.screens[screenName].classList.remove('hidden-el');
                 if (screenName === 'library') this.ui.homeBtn.classList.add('hidden-el');
                 else this.ui.homeBtn.classList.remove('hidden-el');
                 this.checkRestoreVisibility(screenName);
@@ -931,9 +659,8 @@
                 this.ui.modalInput.value = '';
                 this.ui.modalInput.focus();
             },
-            closeModal() {
-                this.ui.modal.classList.remove('active');
-            },
+            closeModal() { this.ui.modal.classList.remove('active'); },
+            
             confirmCreateFolder() {
                 const name = this.ui.modalInput.value.trim();
                 if (name) {
@@ -946,7 +673,7 @@
 
             deleteFolder(id, e) {
                 e.stopPropagation();
-                if(confirm("Xóa toàn bộ sách này?")) {
+                if(confirm("Xóa sách này?")) {
                     this.library = this.library.filter(f => f.id !== id);
                     this.saveLibrary();
                     this.renderLibrary();
@@ -962,28 +689,15 @@
 
             renderLibrary() {
                 this.ui.foldersContainer.innerHTML = '';
-                if (this.library.length === 0) {
-                    document.getElementById('emptyLibraryMsg').classList.remove('hidden');
+                if (!this.library || this.library.length === 0) {
+                    this.ui.emptyLibraryMsg.classList.remove('hidden');
                 } else {
-                    document.getElementById('emptyLibraryMsg').classList.add('hidden');
+                    this.ui.emptyLibraryMsg.classList.add('hidden');
                     this.library.forEach(folder => {
                         const div = document.createElement('div');
                         div.className = "list-item-card p-4 rounded-xl border shadow-sm flex justify-between items-center active:bg-gray-50 transition cursor-pointer";
                         div.onclick = () => this.openFolder(folder.id);
-                        div.innerHTML = `
-                            <div class="flex items-center overflow-hidden">
-                                <div class="w-12 h-12 flex-shrink-0 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 mr-3">
-                                    <i class="fas fa-book text-xl"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <h3 class="font-bold text-gray-800 truncate pr-2">${folder.name}</h3>
-                                    <p class="text-xs text-gray-500">${(folder.quizzes || []).length} đề thi</p>
-                                </div>
-                            </div>
-                            <button onclick="app.deleteFolder(${folder.id}, event)" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        `;
+                        div.innerHTML = `<div class="flex items-center overflow-hidden"><div class="w-12 h-12 flex-shrink-0 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 mr-3"><i class="fas fa-book text-xl"></i></div><div class="min-w-0"><h3 class="font-bold text-gray-800 truncate pr-2">${folder.name}</h3><p class="text-xs text-gray-500">${(folder.quizzes||[]).length} đề thi</p></div></div><button onclick="app.deleteFolder(${folder.id}, event)" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500"><i class="fas fa-trash"></i></button>`;
                         this.ui.foldersContainer.appendChild(div);
                     });
                 }
@@ -995,14 +709,14 @@
                 document.getElementById('currentFolderName').innerText = folder.name;
                 this.ui.quizzesContainer.innerHTML = '';
                 
-                if (!folder.quizzes || folder.quizzes.length === 0) {
-                    document.getElementById('emptyFolderMsg').classList.remove('hidden');
+                const quizzes = folder.quizzes || [];
+                if (quizzes.length === 0) {
+                    this.ui.emptyFolderMsg.classList.remove('hidden');
                 } else {
-                    document.getElementById('emptyFolderMsg').classList.add('hidden');
-                    folder.quizzes.forEach(quiz => {
+                    this.ui.emptyFolderMsg.classList.add('hidden');
+                    quizzes.forEach(quiz => {
                         const hasProgress = quiz.progress && quiz.progress.currentIndex > 0;
                         const isDone = quiz.progress && quiz.progress.currentIndex >= quiz.progress.playQueue.length;
-                        
                         let statusHtml = '';
                         if (isDone) statusHtml = '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md font-bold">Đã xong</span>';
                         else if (hasProgress) statusHtml = '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold">Làm dở</span>';
@@ -1010,23 +724,7 @@
                         const div = document.createElement('div');
                         div.className = "list-item-card p-4 rounded-xl border shadow-sm flex justify-between items-center active:scale-[0.99] transition cursor-pointer";
                         div.onclick = () => this.startQuiz(quiz.id);
-                        div.innerHTML = `
-                            <div class="flex items-center min-w-0 flex-1 mr-2">
-                                <div class="w-10 h-10 flex-shrink-0 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-blue-500 mr-3">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="font-bold text-sm text-gray-800 truncate">${quiz.name}</h4>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <p class="text-xs text-gray-500">${quiz.questions.length} câu</p>
-                                        ${statusHtml}
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="app.deleteQuiz(${quiz.id}, event)" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `;
+                        div.innerHTML = `<div class="flex items-center min-w-0 flex-1 mr-2"><div class="w-10 h-10 flex-shrink-0 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-blue-500 mr-3"><i class="fas fa-file-alt"></i></div><div class="min-w-0"><h4 class="font-bold text-sm text-gray-800 truncate">${quiz.name}</h4><div class="flex items-center gap-2 mt-1"><p class="text-xs text-gray-500">${quiz.questions.length} câu</p>${statusHtml}</div></div></div><button onclick="app.deleteQuiz(${quiz.id}, event)" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>`;
                         this.ui.quizzesContainer.appendChild(div);
                     });
                 }
@@ -1034,7 +732,7 @@
 
             deleteQuiz(quizId, e) {
                 e.stopPropagation();
-                if(confirm("Xóa đề thi này?")) {
+                if(confirm("Xóa đề này?")) {
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     folder.quizzes = folder.quizzes.filter(q => q.id !== quizId);
                     this.saveLibrary();
@@ -1042,7 +740,6 @@
                 }
             },
 
-            // --- QUIZ ---
             startQuiz(quizId, pushHistory = true) {
                 this.currentQuizId = quizId;
                 const folder = this.library.find(f => f.id === this.currentFolderId);
@@ -1056,23 +753,18 @@
                 this.updateShuffleUI();
                 this.updateAutoPlayUI();
                 
-                // HISTORY PUSH (Quan trọng để fix lỗi Back)
                 if(pushHistory) history.pushState({screen: 'quiz', quizId: quizId}, '', '');
 
                 if (quiz.progress) {
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
                     this.updateShuffleUI();
-                    
                     if (this.runtime.isAutoPlay === undefined) this.runtime.isAutoPlay = true;
                     this.updateAutoPlayUI();
 
-                    // --- LOGIC FIX: Check finished ---
                     if (this.runtime.currentIndex >= this.runtime.playQueue.length) {
                          if (this.runtime.wrongIndices.length === 0) {
-                             this.showResult();
-                             return; // Stop render
+                             this.showResult(); return; 
                          } else {
-                             // Recover review state
                              this.runtime.playQueue = [...this.runtime.wrongIndices];
                              this.runtime.currentIndex = 0;
                              this.runtime.isReviewMode = true; 
@@ -1092,7 +784,6 @@
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
                     this.runtime.currentIndex = 0;
-                    
                     this.switchScreen('quiz', false);
                     this.renderQuestion();
                 }
@@ -1100,19 +791,14 @@
             },
 
             resetCurrentQuiz() {
-                if(confirm("Bạn có chắc muốn làm lại từ đầu?")) {
-                    const folder = this.library.find(f => f.id === this.currentFolderId);
-                    const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
-                    
+                if(confirm("Làm lại từ đầu?")) {
                     this.runtime.score = 0;
                     this.runtime.wrongIndices = [];
                     this.runtime.isReviewMode = false;
                     this.runtime.currentIndex = 0;
-                    
-                    let indices = quiz.questions.map((_, i) => i);
+                    let indices = this.runtime.questions.map((_, i) => i);
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
-
                     this.renderQuestion();
                     this.saveQuizProgress();
                 }
@@ -1131,66 +817,40 @@
 
             checkGlobalRestore() {
                 let found = false;
-                if(Array.isArray(this.library)) {
+                if(this.library) {
                     for(let f of this.library) {
-                        if(f.quizzes) {
-                            for(let q of f.quizzes) {
-                                if(q.progress) { found = true; break; }
-                            }
-                        }
+                        if(f.quizzes) { for(let q of f.quizzes) { if(q.progress) { found = true; break; } } }
                     }
                 }
-                if(found) this.ui.restoreBtn.classList.remove('hidden');
-                else this.ui.restoreBtn.classList.add('hidden');
+                if(found) this.ui.restoreBtn.classList.remove('hidden'); else this.ui.restoreBtn.classList.add('hidden');
             },
 
             checkRestoreVisibility(screen) {
-                if (screen === 'library' || screen === 'folder') {
-                     if (this.currentQuizId && this.currentFolderId) {
-                         this.ui.restoreBtn.classList.remove('hidden');
-                         this.ui.restoreBtn.onclick = () => {
-                             const parentId = this.library.find(i => i.id === this.currentFolderId).id; // Actually id is correct
-                             // Just checking if ids exist
-                             this.startQuiz(this.currentQuizId);
-                         };
-                     } else {
-                         this.ui.restoreBtn.classList.add('hidden');
-                     }
+                if ((screen === 'library' || screen === 'folder') && this.currentQuizId && this.currentFolderId) {
+                     this.ui.restoreBtn.classList.remove('hidden');
+                     this.ui.restoreBtn.onclick = () => { this.startQuiz(this.currentQuizId); };
                 } else {
-                    this.ui.restoreBtn.classList.add('hidden');
+                     this.ui.restoreBtn.classList.add('hidden');
                 }
             },
-
-            restoreCurrentProgress() {
-               if(this.currentFolderId && this.currentQuizId) {
-                   this.startQuiz(this.currentQuizId);
-               }
-            },
-
-            formatQuestionText(text) {
-                return text.replace(/\b([A-ZÀ-Ỹ]{2,}(?:[\s-][A-ZÀ-Ỹ]{2,})*)\b/g, (match) => {
-                    return `<span class="highlight-keyword" title="Chạm để nghe">${match}</span>`;
-                });
-            },
+            restoreCurrentProgress() { if(this.currentQuizId) this.startQuiz(this.currentQuizId); },
+            
+            formatQuestionText(text) { return text.replace(/\b([A-ZÀ-Ỹ]{2,}(?:[\s-][A-ZÀ-Ỹ]{2,})*)\b/g, (match) => `<span class="highlight-keyword" title="Chạm để nghe">${match}</span>`); },
 
             renderQuestion() {
-                this.currentAudioSequenceId = Date.now(); 
-
-                if(this.runtime.isReviewMode) this.ui.statusBadge.classList.remove('hidden');
-                else this.ui.statusBadge.classList.add('hidden');
+                this.currentAudioSequenceId = Date.now();
+                if(this.runtime.isReviewMode) this.ui.statusBadge.classList.remove('hidden'); else this.ui.statusBadge.classList.add('hidden');
+                
                 const qIdx = this.runtime.playQueue[this.runtime.currentIndex];
                 const qData = this.runtime.questions[qIdx];
                 this.ui.qText.innerHTML = this.formatQuestionText(qData.q);
-                const currentNum = this.runtime.currentIndex + 1;
-                const totalNum = this.runtime.playQueue.length;
-                this.ui.counter.innerText = `Câu ${currentNum}/${totalNum}`;
-                this.ui.progress.style.width = `${(currentNum / totalNum) * 100}%`;
+                this.ui.counter.innerText = `Câu ${this.runtime.currentIndex + 1}/${this.runtime.playQueue.length}`;
+                this.ui.progress.style.width = `${((this.runtime.currentIndex + 1) / this.runtime.playQueue.length) * 100}%`;
+                
                 this.ui.actionArea.classList.add('opacity-0');
                 this.ui.actionArea.style.pointerEvents = 'none';
-                let answers = [
-                    { text: qData.correct, correct: true },
-                    ...qData.wrong.map(w => ({ text: w, correct: false }))
-                ];
+                
+                let answers = [ { text: qData.correct, correct: true }, ...qData.wrong.map(w => ({ text: w, correct: false })) ];
                 answers.sort(() => Math.random() - 0.5);
                 this.ui.ansContainer.innerHTML = '';
                 answers.forEach((ans, idx) => {
@@ -1201,21 +861,16 @@
                     this.ui.ansContainer.appendChild(btn);
                 });
 
-                if (this.runtime.isAutoPlay) {
-                    this.tryAutoPlay(this.currentAudioSequenceId);
-                }
+                if(this.runtime.isAutoPlay) this.tryAutoPlay(this.currentAudioSequenceId);
             },
 
             async tryAutoPlay(sequenceId) {
                 const keywords = Array.from(document.querySelectorAll('.highlight-keyword'));
-                if (keywords.length === 0) return;
+                if (!keywords.length) return;
                 await new Promise(r => setTimeout(r, 500));
                 for (let el of keywords) {
                     if (this.currentAudioSequenceId !== sequenceId) return;
-                    try {
-                        await this.playGoogleAudioPromise(el.innerText, el);
-                        await new Promise(r => setTimeout(r, 300));
-                    } catch (e) { console.log("Audio skipped"); }
+                    try { await this.playGoogleAudioPromise(el.innerText, el); await new Promise(r => setTimeout(r, 300)); } catch (e) {}
                 }
             },
 
@@ -1223,26 +878,11 @@
                 return new Promise((resolve, reject) => {
                     const player = this.ui.globalAudio;
                     document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
-                    const lowerText = text.trim().toLowerCase();
-                    const encodedText = encodeURIComponent(lowerText);
-                    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-GB&client=tw-ob&q=${encodedText}`;
-                    player.src = url;
+                    player.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-GB&client=tw-ob&q=${encodeURIComponent(text.toLowerCase())}`;
                     if(element) element.classList.add('playing');
-                    player.onended = () => {
-                        if(element) element.classList.remove('playing');
-                        resolve();
-                    };
-                    player.onerror = (e) => {
-                        if(element) element.classList.remove('playing');
-                        resolve(); 
-                    };
-                    const playPromise = player.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(error => {
-                            if(element) element.classList.remove('playing');
-                            resolve(); 
-                        });
-                    }
+                    player.onended = () => { if(element) element.classList.remove('playing'); resolve(); };
+                    player.onerror = () => { if(element) element.classList.remove('playing'); resolve(); };
+                    player.play().catch(() => { if(element) element.classList.remove('playing'); resolve(); });
                 });
             },
 
@@ -1261,9 +901,7 @@
                     setTimeout(() => this.nextQuestion(), 300);
                 } else {
                     btn.classList.add('answer-wrong');
-                    allBtns.forEach(b => {
-                        if (b.innerHTML.includes(this.runtime.questions[qIdx].correct)) b.classList.add('answer-correct');
-                    });
+                    allBtns.forEach(b => { if (b.innerHTML.includes(this.runtime.questions[qIdx].correct)) b.classList.add('answer-correct'); });
                     if (!this.runtime.wrongIndices.includes(qIdx)) this.runtime.wrongIndices.push(qIdx);
                     this.saveQuizProgress();
                     this.ui.actionArea.classList.remove('opacity-0');
@@ -1295,17 +933,85 @@
                 this.switchScreen('result', false);
                 document.getElementById('resRight').innerText = this.runtime.score;
                 document.getElementById('resTotal').innerText = this.runtime.questions.length;
-                if (this.runtime.score === this.runtime.questions.length) {
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                }
+                if (this.runtime.score === this.runtime.questions.length) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             },
 
             restartQuiz() {
-                const folder = this.library.find(f => f.id === this.currentFolderId);
-                const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
+                const quiz = this.library.find(f => f.id === this.currentFolderId).quizzes.find(q => q.id === this.currentQuizId);
                 quiz.progress = null; 
                 this.saveLibrary();
                 this.startQuiz(this.currentQuizId);
+            },
+            
+            // Auth Handlers
+            setBtnLoading(btn, loading, originalContent) {
+                if (loading) { btn.dataset.original = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Đang xử lý...'; btn.classList.add('opacity-70', 'cursor-not-allowed'); } 
+                else { btn.disabled = false; btn.innerHTML = btn.dataset.original || originalContent; btn.classList.remove('opacity-70', 'cursor-not-allowed'); }
+            },
+            toggleAuthMode() { this.isRegisterMode=!this.isRegisterMode; document.getElementById('authSwitchBtn').innerText=this.isRegisterMode?"Đăng nhập":"Đăng ký"; this.ui.emailAuthBtn.innerText=this.isRegisterMode?"Đăng ký":"Đăng nhập"; },
+            handleEmailAuth() {
+                const e=this.ui.emailInput.value, p=this.ui.passwordInput.value;
+                if(!e||!p) return this.ui.loginError.classList.remove('hidden'), this.ui.loginError.innerText="Nhập đủ!";
+                this.setBtnLoading(this.ui.emailAuthBtn, true);
+                (this.isRegisterMode ? auth.createUserWithEmailAndPassword(e,p) : auth.signInWithEmailAndPassword(e,p)).catch(err=> {
+                    this.setBtnLoading(this.ui.emailAuthBtn, false);
+                    this.ui.loginError.classList.remove('hidden'); this.ui.loginError.innerText=err.message;
+                });
+            },
+            loginGoogle() { 
+                const btn = document.getElementById('googleAuthBtn');
+                this.setBtnLoading(btn, true);
+                auth.signInWithPopup(provider).catch(err=> {
+                    this.setBtnLoading(btn, false);
+                    this.ui.loginError.classList.remove('hidden'); this.ui.loginError.innerText=err.message;
+                });
+            },
+            logout() { auth.signOut().then(()=>location.reload()); },
+            
+            setupHistory() {
+                history.replaceState({ screen: 'library' }, '', '');
+                history.pushState({ screen: 'library' }, '', '');
+                window.onpopstate = (e) => {
+                    const state = e.state;
+                    if (!state) {
+                        if (this.exitAttempt) history.back();
+                        else { 
+                            this.ui.toast.classList.add('show'); 
+                            this.exitAttempt = true; 
+                            history.pushState({ screen: 'library' }, '', ''); 
+                            setTimeout(() => { this.ui.toast.classList.remove('show'); this.exitAttempt = false; }, 2000); 
+                        }
+                        return;
+                    }
+                    if (state.screen === 'folder') {
+                        this.currentFolderId = state.folderId;
+                        this.renderFolder();
+                        this.switchScreen('folder', false);
+                    } else if (state.screen === 'quiz') {
+                        this.currentQuizId = state.quizId;
+                        this.openFolder(this.currentFolderId, false);
+                    } else if (state.screen === 'library') {
+                        this.goHome(false);
+                    }
+                };
+            },
+            
+            handleGlobalKey(e) {
+                if (this.ui.screens.quiz.classList.contains('hidden-el')) return;
+                if (['1','2','3','4'].includes(e.key)) {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = this.ui.ansContainer.querySelectorAll('button');
+                    if (btns[idx] && !btns[idx].disabled) btns[idx].click();
+                }
+                if (e.key === 'Enter' && !this.ui.actionArea.classList.contains('opacity-0')) this.nextQuestion();
+            },
+            
+            updateShuffleUI() {
+                this.ui.shuffleToggle.className = this.runtime.isShuffled ? 'text-yellow-500 hover:text-yellow-600 transition px-2' : 'text-gray-400 hover:text-gray-500 transition px-2';
+            },
+            updateAutoPlayUI() {
+                this.ui.autoPlayToggle.className = this.runtime.isAutoPlay ? 'text-yellow-500 hover:text-yellow-600 transition px-2' : 'text-gray-400 hover:text-gray-500 transition px-2';
+                this.ui.autoPlayToggle.innerHTML = this.runtime.isAutoPlay ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
             }
         };
 
