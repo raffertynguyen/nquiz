@@ -160,7 +160,7 @@
             transition: all 0.2s;
         }
         body.dark-mode .list-item-card {
-            background-color: #111827 !important; /* Xám đen */
+            background-color: #111827 !important;
             border-color: #374151 !important;
             color: #ffffff !important;
         }
@@ -432,6 +432,10 @@
                         FILE NAME
                     </span>
                     <div class="flex items-center gap-2">
+                        <!-- Auto-Play Toggle -->
+                        <button id="autoPlayToggle" class="text-yellow-500 hover:text-yellow-600 transition px-2" title="Tự động phát">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
                         <!-- Reset Button -->
                         <button id="resetQuizBtn" onclick="app.resetCurrentQuiz()" class="text-gray-400 hover:text-red-500 transition px-2" title="Làm lại từ đầu">
                             <i class="fas fa-redo"></i>
@@ -494,13 +498,12 @@
     <script>
         // --- 1. FIREBASE CONFIGURATION (BẠN CẦN ĐIỀN VÀO ĐÂY) ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAPw8m0-45L79uIh_y8MaAcf9JyM9vGDKk",
-            authDomain: "nquiz-data.firebaseapp.com",
-            projectId: "nquiz-data",
-            storageBucket: "nquiz-data.firebasestorage.app",
-            messagingSenderId: "238520671984",
-            appId: "1:238520671984:web:0105afef3b3fa72372ac35",
-            measurementId: "G-Z8HNTS75XP"
+            apiKey: "DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY",
+            authDomain: "DÁN_AUTH_DOMAIN_VÀO_ĐÂY",
+            projectId: "DÁN_PROJECT_ID_VÀO_ĐÂY",
+            storageBucket: "...",
+            messagingSenderId: "...",
+            appId: "..."
         };
 
         // --- 2. FIREBASE INIT ---
@@ -527,7 +530,8 @@
 
             runtime: {
                 questions: [], playQueue: [], wrongIndices: [], 
-                currentIndex: 0, score: 0, isShuffled: true, isReviewMode: false
+                currentIndex: 0, score: 0, isShuffled: true, isReviewMode: false,
+                isAutoPlay: true // DEFAULT AUTO PLAY ON
             },
 
             ui: {
@@ -560,7 +564,8 @@
                 emailAuthBtn: document.getElementById('emailAuthBtn'),
                 loginError: document.getElementById('loginError'),
                 toast: document.getElementById('toast'),
-                shuffleToggle: document.getElementById('shuffleToggle')
+                shuffleToggle: document.getElementById('shuffleToggle'),
+                autoPlayToggle: document.getElementById('autoPlayToggle')
             },
 
             init() {
@@ -583,13 +588,18 @@
                     this.updateShuffleUI();
                 });
 
+                // Auto Play Toggle Logic
+                this.ui.autoPlayToggle.addEventListener('click', (e) => {
+                    this.runtime.isAutoPlay = !this.runtime.isAutoPlay;
+                    this.updateAutoPlayUI();
+                });
+
                 this.ui.qText.addEventListener('click', (e) => {
                     const target = e.target.closest('.highlight-keyword');
                     if (target) this.playGoogleAudio(target.innerText, target);
                 });
-                this.ui.globalAudio.addEventListener('ended', () => {
-                    document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
-                });
+                
+                // Note: onended listener moved to playGoogleAudio's logic for sequential play
 
                 document.addEventListener('keydown', (e) => {
                     if (this.ui.screens.quiz.classList.contains('hidden-el')) return;
@@ -648,6 +658,18 @@
                 } else {
                     this.ui.shuffleToggle.classList.remove('text-yellow-500');
                     this.ui.shuffleToggle.classList.add('text-gray-400');
+                }
+            },
+
+            updateAutoPlayUI() {
+                if(this.runtime.isAutoPlay) {
+                    this.ui.autoPlayToggle.classList.remove('text-gray-400');
+                    this.ui.autoPlayToggle.classList.add('text-yellow-500');
+                    this.ui.autoPlayToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
+                } else {
+                    this.ui.autoPlayToggle.classList.remove('text-yellow-500');
+                    this.ui.autoPlayToggle.classList.add('text-gray-400');
+                    this.ui.autoPlayToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
                 }
             },
 
@@ -902,7 +924,6 @@
                     document.getElementById('emptyLibraryMsg').classList.add('hidden');
                     this.library.forEach(folder => {
                         const div = document.createElement('div');
-                        // ADDED CLASS list-item-card for dark mode support
                         div.className = "list-item-card p-4 rounded-xl border shadow-sm flex justify-between items-center active:bg-gray-50 transition cursor-pointer";
                         div.onclick = () => this.openFolder(folder.id);
                         div.innerHTML = `
@@ -941,7 +962,6 @@
                         else if (hasProgress) statusHtml = '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold">Làm dở</span>';
                         
                         const div = document.createElement('div');
-                        // ADDED CLASS list-item-card for dark mode support
                         div.className = "list-item-card p-4 rounded-xl border shadow-sm flex justify-between items-center active:scale-[0.99] transition cursor-pointer";
                         div.onclick = () => this.startQuiz(quiz.id);
                         div.innerHTML = `
@@ -984,23 +1004,26 @@
                 this.ui.fileNameDisplay.innerText = `FILE: ${quiz.name}`;
                 this.ui.fileNameDisplay.classList.remove('hidden-el');
                 
-                // Cập nhật trạng thái shuffle theo dữ liệu đã lưu
-                this.runtime.isShuffled = true; // Mặc định true
+                this.runtime.isShuffled = true; 
+                this.runtime.isAutoPlay = true; // Default ON
                 this.updateShuffleUI();
+                this.updateAutoPlayUI();
 
                 if (quiz.progress) {
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
-                    this.updateShuffleUI(); // Cập nhật lại nếu có lưu trạng thái
+                    this.updateShuffleUI();
                     
-                    // Logic fix: Check if finished regardless of review mode status
-                    // As long as queue is done and no new wrong answers pending
+                    // Keep auto-play persisted if saved? Or force default? Let's force default for now or allow save.
+                    // If saving isAutoPlay in runtime, restore it:
+                    if (this.runtime.isAutoPlay === undefined) this.runtime.isAutoPlay = true;
+                    this.updateAutoPlayUI();
+
                     if (this.runtime.currentIndex >= this.runtime.playQueue.length && 
-                        this.runtime.wrongIndices.length === 0) {
+                        this.runtime.wrongIndices.length === 0 && !this.runtime.isReviewMode) {
                          this.showResult();
                          return; 
                     } 
                     
-                    // Nếu chưa xong, render bình thường
                     this.switchScreen('quiz', false);
                     this.renderQuestion();
                 } else {
@@ -1026,18 +1049,15 @@
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
                     
-                    // Reset Runtime
                     this.runtime.score = 0;
                     this.runtime.wrongIndices = [];
                     this.runtime.isReviewMode = false;
                     this.runtime.currentIndex = 0;
                     
-                    // Reshuffle
                     let indices = quiz.questions.map((_, i) => i);
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
 
-                    // Update UI & Save
                     this.renderQuestion();
                     this.saveQuizProgress();
                 }
@@ -1093,6 +1113,9 @@
             },
 
             renderQuestion() {
+                // STOP any previous audio loop
+                this.currentAudioSequenceId = Date.now(); // invalidate old sequences
+
                 if(this.runtime.isReviewMode) this.ui.statusBadge.classList.remove('hidden');
                 else this.ui.statusBadge.classList.add('hidden');
                 const qIdx = this.runtime.playQueue[this.runtime.currentIndex];
@@ -1117,6 +1140,74 @@
                     btn.onclick = () => this.handleAnswer(btn, ans, qIdx);
                     this.ui.ansContainer.appendChild(btn);
                 });
+
+                // AUTO PLAY LOGIC
+                if (this.runtime.isAutoPlay) {
+                    this.tryAutoPlay(this.currentAudioSequenceId);
+                }
+            },
+
+            async tryAutoPlay(sequenceId) {
+                const keywords = Array.from(document.querySelectorAll('.highlight-keyword'));
+                if (keywords.length === 0) return;
+
+                // Simple delay before starting
+                await new Promise(r => setTimeout(r, 500));
+
+                for (let el of keywords) {
+                    // Check if user changed question
+                    if (this.currentAudioSequenceId !== sequenceId) return;
+                    
+                    try {
+                        await this.playGoogleAudioPromise(el.innerText, el);
+                        // Small pause between words
+                        await new Promise(r => setTimeout(r, 300));
+                    } catch (e) {
+                        console.log("Audio skipped or failed");
+                    }
+                }
+            },
+
+            playGoogleAudioPromise(text, element) {
+                return new Promise((resolve, reject) => {
+                    const player = this.ui.globalAudio;
+                    
+                    // Reset previous playing UI
+                    document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
+
+                    const lowerText = text.trim().toLowerCase();
+                    const encodedText = encodeURIComponent(lowerText);
+                    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodedText}`;
+                    
+                    player.src = url;
+                    if(element) element.classList.add('playing');
+
+                    player.onended = () => {
+                        if(element) element.classList.remove('playing');
+                        resolve();
+                    };
+                    
+                    player.onerror = (e) => {
+                        if(element) element.classList.remove('playing');
+                        resolve(); // Resolve even on error to continue sequence
+                    };
+
+                    const playPromise = player.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => {
+                            // Autoplay block
+                            if(element) element.classList.remove('playing');
+                            resolve(); 
+                        });
+                    }
+                });
+            },
+
+            // Keep old method for manual clicks
+            playGoogleAudio(text, element) {
+                // Cancel sequence
+                this.currentAudioSequenceId = Date.now(); 
+                this.playGoogleAudioPromise(text, element);
             },
 
             handleAnswer(btn, ansData, qIdx) {
@@ -1187,20 +1278,6 @@
                 quiz.progress = null; 
                 this.saveLibrary();
                 this.startQuiz(this.currentQuizId);
-            },
-
-            playGoogleAudio(text, element) {
-                const player = this.ui.globalAudio;
-                document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
-                const lowerText = text.trim().toLowerCase();
-                const encodedText = encodeURIComponent(lowerText);
-                const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodedText}`;
-                player.src = url;
-                if(element) element.classList.add('playing');
-                player.play().catch(e => {
-                    console.error(e);
-                    if(element) element.classList.remove('playing');
-                });
             }
         };
 
