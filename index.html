@@ -771,12 +771,27 @@
             // --- CLOUD DATA ---
             async loadLibraryFromCloud() {
                 this.ui.loadingIndicator.classList.remove('hidden');
+                // Migrate Logic: If data is flat (V7), convert to nested (V6)
+                // This is a safety measure in case user switches back from V7
                 try {
                     const docRef = db.collection('users').doc(currentUser.uid);
                     const doc = await docRef.get();
                     if (doc.exists) {
-                        const data = doc.data();
-                        this.library = data.library || [];
+                        let data = doc.data().library || [];
+                        // Check if it's V7 data (flat)
+                        if(Array.isArray(data) && data.length > 0 && data[0].type) {
+                             const folders = data.filter(i => i.type === 'folder').map(f => ({
+                                 id: f.id, name: f.name, quizzes: []
+                             }));
+                             const quizzes = data.filter(i => i.type === 'quiz');
+                             quizzes.forEach(q => {
+                                 const f = folders.find(fd => fd.id === q.parentId);
+                                 if(f) f.quizzes.push({ id: q.id, name: q.name, questions: q.questions, progress: q.progress });
+                             });
+                             this.library = folders;
+                        } else {
+                            this.library = data;
+                        }
                     } else {
                         this.library = [];
                         await docRef.set({ library: [] });
@@ -880,7 +895,16 @@
             },
 
             goBack() {
-                history.back();
+                if (!this.ui.screens.folder.classList.contains('hidden-el')) {
+                    this.goHome();
+                } else {
+                    if (this.ui.globalAudio) {
+                        this.ui.globalAudio.pause();
+                        this.ui.globalAudio.currentTime = 0;
+                    }
+                    this.currentQuizId = null; 
+                    this.openFolder(this.currentFolderId);
+                }
             },
 
             openCreateModal() {
@@ -934,7 +958,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <h3 class="font-bold text-gray-800 truncate pr-2">${folder.name}</h3>
-                                    <p class="text-xs text-gray-500">${folder.quizzes.length} đề thi</p>
+                                    <p class="text-xs text-gray-500">${folder.quizzes ? folder.quizzes.length : 0} đề thi</p>
                                 </div>
                             </div>
                             <button onclick="app.deleteFolder(${folder.id}, event)" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500">
@@ -951,17 +975,19 @@
                 if (!folder) return this.goHome(false);
                 document.getElementById('currentFolderName').innerText = folder.name;
                 this.ui.quizzesContainer.innerHTML = '';
-                if (folder.quizzes.length === 0) {
+                
+                if (!folder.quizzes || folder.quizzes.length === 0) {
                     document.getElementById('emptyFolderMsg').classList.remove('hidden');
                 } else {
                     document.getElementById('emptyFolderMsg').classList.add('hidden');
                     folder.quizzes.forEach(quiz => {
                         const hasProgress = quiz.progress && quiz.progress.currentIndex > 0;
                         const isDone = quiz.progress && quiz.progress.currentIndex >= quiz.progress.playQueue.length;
+                        
                         let statusHtml = '';
                         if (isDone) statusHtml = '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md font-bold">Đã xong</span>';
                         else if (hasProgress) statusHtml = '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold">Làm dở</span>';
-                        
+
                         const div = document.createElement('div');
                         div.className = "list-item-card p-4 rounded-xl border shadow-sm flex justify-between items-center active:scale-[0.99] transition cursor-pointer";
                         div.onclick = () => this.startQuiz(quiz.id);
@@ -1002,29 +1028,32 @@
                 this.currentQuizId = quizId;
                 const folder = this.library.find(f => f.id === this.currentFolderId);
                 const quiz = folder.quizzes.find(q => q.id === quizId);
+
                 this.ui.fileNameDisplay.innerText = `FILE: ${quiz.name}`;
                 this.ui.fileNameDisplay.classList.remove('hidden-el');
                 
                 this.runtime.isShuffled = true; 
-                this.runtime.isAutoPlay = true; // Default ON
+                this.runtime.isAutoPlay = true; 
                 this.updateShuffleUI();
                 this.updateAutoPlayUI();
                 
-                // History Push
+                // HISTORY PUSH (Quan trọng để fix lỗi Back)
                 if(pushHistory) history.pushState({screen: 'quiz', quizId: quizId}, '', '');
 
                 if (quiz.progress) {
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
                     this.updateShuffleUI();
+                    
                     if (this.runtime.isAutoPlay === undefined) this.runtime.isAutoPlay = true;
                     this.updateAutoPlayUI();
 
-                    // --- LOGIC FIX: Check finished state ---
+                    // --- LOGIC FIX: Check finished ---
                     if (this.runtime.currentIndex >= this.runtime.playQueue.length) {
                          if (this.runtime.wrongIndices.length === 0) {
                              this.showResult();
-                             return; 
+                             return; // Stop render
                          } else {
+                             // Recover review state
                              this.runtime.playQueue = [...this.runtime.wrongIndices];
                              this.runtime.currentIndex = 0;
                              this.runtime.isReviewMode = true; 
@@ -1039,10 +1068,12 @@
                     this.runtime.score = 0;
                     this.runtime.wrongIndices = [];
                     this.runtime.isReviewMode = false;
+                    
                     let indices = quiz.questions.map((_, i) => i);
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
                     this.runtime.currentIndex = 0;
+                    
                     this.switchScreen('quiz', false);
                     this.renderQuestion();
                 }
@@ -1053,13 +1084,16 @@
                 if(confirm("Bạn có chắc muốn làm lại từ đầu?")) {
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
+                    
                     this.runtime.score = 0;
                     this.runtime.wrongIndices = [];
                     this.runtime.isReviewMode = false;
                     this.runtime.currentIndex = 0;
+                    
                     let indices = quiz.questions.map((_, i) => i);
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
+
                     this.renderQuestion();
                     this.saveQuizProgress();
                 }
@@ -1078,12 +1112,17 @@
 
             checkGlobalRestore() {
                 let found = false;
-                for(let f of this.library) {
-                    for(let q of f.quizzes) {
-                        if(q.progress) { found = true; break; }
+                if(Array.isArray(this.library)) {
+                    for(let f of this.library) {
+                        if(f.quizzes) {
+                            for(let q of f.quizzes) {
+                                if(q.progress) { found = true; break; }
+                            }
+                        }
                     }
                 }
-                this.hasSavedProgress = found;
+                if(found) this.ui.restoreBtn.classList.remove('hidden');
+                else this.ui.restoreBtn.classList.add('hidden');
             },
 
             checkRestoreVisibility(screen) {
@@ -1091,7 +1130,8 @@
                      if (this.currentQuizId && this.currentFolderId) {
                          this.ui.restoreBtn.classList.remove('hidden');
                          this.ui.restoreBtn.onclick = () => {
-                             this.openFolder(this.currentFolderId);
+                             const parentId = this.library.find(i => i.id === this.currentFolderId).id; // Actually id is correct
+                             // Just checking if ids exist
                              this.startQuiz(this.currentQuizId);
                          };
                      } else {
@@ -1203,14 +1243,9 @@
                 } else {
                     btn.classList.add('answer-wrong');
                     allBtns.forEach(b => {
-                        const textContent = b.innerText.substring(2).trim(); 
-                        if (textContent === this.runtime.questions[qIdx].correct.trim()) {
-                            b.classList.add('answer-correct');
-                        }
+                        if (b.innerHTML.includes(this.runtime.questions[qIdx].correct)) b.classList.add('answer-correct');
                     });
-                    if (!this.runtime.wrongIndices.includes(qIdx)) {
-                        this.runtime.wrongIndices.push(qIdx);
-                    }
+                    if (!this.runtime.wrongIndices.includes(qIdx)) this.runtime.wrongIndices.push(qIdx);
                     this.saveQuizProgress();
                     this.ui.actionArea.classList.remove('opacity-0');
                     this.ui.actionArea.style.pointerEvents = 'auto';
@@ -1223,22 +1258,14 @@
                 if (this.runtime.currentIndex < this.runtime.playQueue.length) {
                     this.renderQuestion();
                 } else {
-                    if (this.runtime.wrongIndices.length > 0 && !this.runtime.isReviewMode) {
+                     if (this.runtime.wrongIndices.length > 0) {
                         this.runtime.playQueue = [...this.runtime.wrongIndices];
                         this.runtime.currentIndex = 0;
                         this.runtime.isReviewMode = true; 
                         this.runtime.wrongIndices = []; 
                         this.saveQuizProgress();
                         this.renderQuestion();
-                    } 
-                    else if (this.runtime.isReviewMode && this.runtime.wrongIndices.length > 0) {
-                        this.runtime.playQueue = [...this.runtime.wrongIndices];
-                        this.runtime.currentIndex = 0;
-                        this.runtime.wrongIndices = [];
-                        this.saveQuizProgress();
-                        this.renderQuestion();
-                    } 
-                    else {
+                    } else {
                         this.saveQuizProgress();
                         this.showResult();
                     }
