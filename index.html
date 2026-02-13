@@ -1014,16 +1014,23 @@
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
                     this.updateShuffleUI();
                     
-                    // Keep auto-play persisted if saved? Or force default? Let's force default for now or allow save.
-                    // If saving isAutoPlay in runtime, restore it:
                     if (this.runtime.isAutoPlay === undefined) this.runtime.isAutoPlay = true;
                     this.updateAutoPlayUI();
 
-                    if (this.runtime.currentIndex >= this.runtime.playQueue.length && 
-                        this.runtime.wrongIndices.length === 0 && !this.runtime.isReviewMode) {
-                         this.showResult();
-                         return; 
-                    } 
+                    // --- LOGIC FIX: Check finished state ---
+                    if (this.runtime.currentIndex >= this.runtime.playQueue.length) {
+                        if (this.runtime.wrongIndices.length === 0) {
+                            this.showResult();
+                            return; 
+                        } else {
+                            // Recover interrupted transition
+                            this.runtime.playQueue = [...this.runtime.wrongIndices];
+                            this.runtime.currentIndex = 0;
+                            this.runtime.isReviewMode = true; 
+                            this.runtime.wrongIndices = []; 
+                            this.saveQuizProgress();
+                        }
+                    }
                     
                     this.switchScreen('quiz', false);
                     this.renderQuestion();
@@ -1050,18 +1057,15 @@
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
                     
-                    // Reset Runtime
                     this.runtime.score = 0;
                     this.runtime.wrongIndices = [];
                     this.runtime.isReviewMode = false;
                     this.runtime.currentIndex = 0;
                     
-                    // Reshuffle
                     let indices = quiz.questions.map((_, i) => i);
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
 
-                    // Update UI & Save
                     this.renderQuestion();
                     this.saveQuizProgress();
                 }
@@ -1117,8 +1121,7 @@
             },
 
             renderQuestion() {
-                // STOP any previous audio loop
-                this.currentAudioSequenceId = Date.now(); // invalidate old sequences
+                this.currentAudioSequenceId = Date.now(); 
 
                 if(this.runtime.isReviewMode) this.ui.statusBadge.classList.remove('hidden');
                 else this.ui.statusBadge.classList.add('hidden');
@@ -1145,7 +1148,6 @@
                     this.ui.ansContainer.appendChild(btn);
                 });
 
-                // AUTO PLAY LOGIC
                 if (this.runtime.isAutoPlay) {
                     this.tryAutoPlay(this.currentAudioSequenceId);
                 }
@@ -1154,53 +1156,36 @@
             async tryAutoPlay(sequenceId) {
                 const keywords = Array.from(document.querySelectorAll('.highlight-keyword'));
                 if (keywords.length === 0) return;
-
-                // Simple delay before starting
                 await new Promise(r => setTimeout(r, 500));
-
                 for (let el of keywords) {
-                    // Check if user changed question
                     if (this.currentAudioSequenceId !== sequenceId) return;
-                    
                     try {
                         await this.playGoogleAudioPromise(el.innerText, el);
-                        // Small pause between words
                         await new Promise(r => setTimeout(r, 300));
-                    } catch (e) {
-                        console.log("Audio skipped or failed");
-                    }
+                    } catch (e) { console.log("Audio skipped"); }
                 }
             },
 
             playGoogleAudioPromise(text, element) {
                 return new Promise((resolve, reject) => {
                     const player = this.ui.globalAudio;
-                    
-                    // Reset previous playing UI
                     document.querySelectorAll('.highlight-keyword').forEach(el => el.classList.remove('playing'));
-
                     const lowerText = text.trim().toLowerCase();
                     const encodedText = encodeURIComponent(lowerText);
-                    // Use en-GB for British Accent
                     const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-GB&client=tw-ob&q=${encodedText}`;
-                    
                     player.src = url;
                     if(element) element.classList.add('playing');
-
                     player.onended = () => {
                         if(element) element.classList.remove('playing');
                         resolve();
                     };
-                    
                     player.onerror = (e) => {
                         if(element) element.classList.remove('playing');
-                        resolve(); // Resolve even on error to continue sequence
+                        resolve(); 
                     };
-
                     const playPromise = player.play();
                     if (playPromise !== undefined) {
                         playPromise.catch(error => {
-                            // Autoplay block
                             if(element) element.classList.remove('playing');
                             resolve(); 
                         });
@@ -1208,9 +1193,7 @@
                 });
             },
 
-            // Keep old method for manual clicks
             playGoogleAudio(text, element) {
-                // Cancel sequence
                 this.currentAudioSequenceId = Date.now(); 
                 this.playGoogleAudioPromise(text, element);
             },
