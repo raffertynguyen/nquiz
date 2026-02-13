@@ -1050,15 +1050,18 @@
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
                     
+                    // Reset Runtime
                     this.runtime.score = 0;
                     this.runtime.wrongIndices = [];
                     this.runtime.isReviewMode = false;
                     this.runtime.currentIndex = 0;
                     
+                    // Reshuffle
                     let indices = quiz.questions.map((_, i) => i);
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
 
+                    // Update UI & Save
                     this.renderQuestion();
                     this.saveQuizProgress();
                 }
@@ -1178,7 +1181,8 @@
 
                     const lowerText = text.trim().toLowerCase();
                     const encodedText = encodeURIComponent(lowerText);
-                    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodedText}`;
+                    // Use en-GB for British Accent
+                    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en-GB&client=tw-ob&q=${encodedText}`;
                     
                     player.src = url;
                     if(element) element.classList.add('playing');
@@ -1286,4 +1290,3 @@
     </script>
 </body>
 </html>
-
