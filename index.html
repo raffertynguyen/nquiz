@@ -160,7 +160,7 @@
             transition: all 0.2s;
         }
         body.dark-mode .list-item-card {
-            background-color: #111827 !important;
+            background-color: #111827 !important; /* Xám đen */
             border-color: #374151 !important;
             color: #ffffff !important;
         }
@@ -496,7 +496,7 @@
     </main>
 
     <script>
-        // --- 1. FIREBASE CONFIGURATION (BẠN CẦN ĐIỀN VÀO ĐÂY) ---
+        // --- 1. FIREBASE CONFIGURATION (API CHÍNH CHỦ) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAPw8m0-45L79uIh_y8MaAcf9JyM9vGDKk",
             authDomain: "nquiz-data.firebaseapp.com",
@@ -1009,29 +1009,29 @@
                 this.runtime.isAutoPlay = true; // Default ON
                 this.updateShuffleUI();
                 this.updateAutoPlayUI();
+                
+                // History Push
+                if(pushHistory) history.pushState({screen: 'quiz', quizId: quizId}, '', '');
 
                 if (quiz.progress) {
                     this.runtime = JSON.parse(JSON.stringify(quiz.progress));
                     this.updateShuffleUI();
-                    
                     if (this.runtime.isAutoPlay === undefined) this.runtime.isAutoPlay = true;
                     this.updateAutoPlayUI();
 
                     // --- LOGIC FIX: Check finished state ---
                     if (this.runtime.currentIndex >= this.runtime.playQueue.length) {
-                        if (this.runtime.wrongIndices.length === 0) {
-                            this.showResult();
-                            return; 
-                        } else {
-                            // Recover interrupted transition
-                            this.runtime.playQueue = [...this.runtime.wrongIndices];
-                            this.runtime.currentIndex = 0;
-                            this.runtime.isReviewMode = true; 
-                            this.runtime.wrongIndices = []; 
-                            this.saveQuizProgress();
-                        }
+                         if (this.runtime.wrongIndices.length === 0) {
+                             this.showResult();
+                             return; 
+                         } else {
+                             this.runtime.playQueue = [...this.runtime.wrongIndices];
+                             this.runtime.currentIndex = 0;
+                             this.runtime.isReviewMode = true; 
+                             this.runtime.wrongIndices = []; 
+                             this.saveQuizProgress();
+                         }
                     }
-                    
                     this.switchScreen('quiz', false);
                     this.renderQuestion();
                 } else {
@@ -1039,33 +1039,27 @@
                     this.runtime.score = 0;
                     this.runtime.wrongIndices = [];
                     this.runtime.isReviewMode = false;
-                    
                     let indices = quiz.questions.map((_, i) => i);
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
                     this.runtime.currentIndex = 0;
-                    
                     this.switchScreen('quiz', false);
                     this.renderQuestion();
                 }
                 this.checkRestoreVisibility('quiz');
-                if(pushHistory) history.pushState({screen: 'quiz', quizId: quizId}, '', '');
             },
 
             resetCurrentQuiz() {
                 if(confirm("Bạn có chắc muốn làm lại từ đầu?")) {
                     const folder = this.library.find(f => f.id === this.currentFolderId);
                     const quiz = folder.quizzes.find(q => q.id === this.currentQuizId);
-                    
                     this.runtime.score = 0;
                     this.runtime.wrongIndices = [];
                     this.runtime.isReviewMode = false;
                     this.runtime.currentIndex = 0;
-                    
                     let indices = quiz.questions.map((_, i) => i);
                     if(this.runtime.isShuffled) indices.sort(() => Math.random() - 0.5);
                     this.runtime.playQueue = indices;
-
                     this.renderQuestion();
                     this.saveQuizProgress();
                 }
