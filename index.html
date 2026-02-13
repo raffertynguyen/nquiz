@@ -516,6 +516,16 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
+            
+            // --- FIX: Bật chế độ Offline Persistence ---
+            db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+                if (err.code == 'failed-precondition') {
+                    console.warn('Lỗi: Đang mở nhiều tab nQUIZ cùng lúc. Chỉ tab đầu tiên mới có thể lưu offline.');
+                } else if (err.code == 'unimplemented') {
+                    console.warn('Trình duyệt không hỗ trợ lưu offline.');
+                }
+            });
+
             auth = firebase.auth();
             provider = new firebase.auth.GoogleAuthProvider();
         } catch (error) {
@@ -769,16 +779,16 @@
             logout() { auth.signOut().then(() => { location.reload(); }); },
 
             // --- CLOUD DATA ---
-            async loadLibraryFromCloud() {
+            async loadLibraryFromCloud(retry = 3) {
                 this.ui.loadingIndicator.classList.remove('hidden');
-                // Migrate Logic: If data is flat (V7), convert to nested (V6)
-                // This is a safety measure in case user switches back from V7
                 try {
                     const docRef = db.collection('users').doc(currentUser.uid);
+                    
+                    // Thêm timeout cho get() request
                     const doc = await docRef.get();
+                    
                     if (doc.exists) {
                         let data = doc.data().library || [];
-                        // Check if it's V7 data (flat)
                         if(Array.isArray(data) && data.length > 0 && data[0].type) {
                              const folders = data.filter(i => i.type === 'folder').map(f => ({
                                  id: f.id, name: f.name, quizzes: []
@@ -798,11 +808,20 @@
                     }
                 } catch (error) {
                     console.error("Error getting document:", error);
-                    alert("Lỗi tải dữ liệu: " + error.message);
+                    // RETRY LOGIC (Nếu lỗi offline thì thử lại)
+                    if (retry > 0 && error.message.includes("offline")) {
+                         console.log(`Retrying... (${retry} left)`);
+                         setTimeout(() => this.loadLibraryFromCloud(retry - 1), 1000);
+                         return; // Dừng hàm này, chờ đợt retry
+                    }
+                    alert("Lỗi tải dữ liệu: " + error.message + "\n(Vui lòng kiểm tra kết nối mạng)");
                 } finally {
-                    this.ui.loadingIndicator.classList.add('hidden');
-                    this.checkGlobalRestore();
-                    this.renderLibrary();
+                    // Chỉ ẩn loading khi đã hết lượt retry hoặc thành công
+                    if (retry === 0 || this.library.length >= 0) {
+                        this.ui.loadingIndicator.classList.add('hidden');
+                        this.checkGlobalRestore();
+                        this.renderLibrary();
+                    }
                 }
             },
 
@@ -958,7 +977,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <h3 class="font-bold text-gray-800 truncate pr-2">${folder.name}</h3>
-                                    <p class="text-xs text-gray-500">${folder.quizzes ? folder.quizzes.length : 0} đề thi</p>
+                                    <p class="text-xs text-gray-500">${(folder.quizzes || []).length} đề thi</p>
                                 </div>
                             </div>
                             <button onclick="app.deleteFolder(${folder.id}, event)" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500">
